@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2025-03-18 15:00:14.456073",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "company",
+  "week_start_date",
+  "week_end_date",
+  "target_amount",
+  "collected_amount",
+  "target_percentage",
+  "section_break_ptfa",
+  "accounting_dimensions"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "target_amount",
+   "fieldtype": "Currency",
+   "label": "Target Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "week_start_date",
+   "fieldtype": "Date",
+   "label": "Week Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "week_end_date",
+   "fieldtype": "Date",
+   "label": "Week End Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "collected_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Collected Amount",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.target_amount > 0",
+   "fieldname": "target_percentage",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Target Percentage",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_ptfa",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "accounting_dimensions",
+   "fieldtype": "Table",
+   "label": "Dimensions",
+   "options": "Weekly Dimension Accounting"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-20 18:11:04.721650",
+ "modified_by": "Administrator",
+ "module": "Flexible Budget",
+ "name": "Weekly Target Revenue",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "company",
+ "track_changes": 1
+}
