@@ -8,7 +8,15 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "general_details_section",
   "company",
+  "percentage_used",
+  "column_break_sscp",
+  "planned_budget",
+  "allowed_moun",
+  "unspent_budget",
+  "section_break_21",
+  "accounting_dimensions",
   "section_break_6",
   "applicable_on_material_request",
   "action_if_annual_budget_exceeded_on_mr",
@@ -21,8 +29,6 @@
   "applicable_on_booking_actual_expenses",
   "action_if_annual_budget_exceeded",
   "action_if_accumulated_monthly_budget_exceeded",
-  "section_break_21",
-  "accounting_dimensions",
   "amended_from"
  ],
  "fields": [
@@ -122,12 +128,12 @@
   },
   {
    "fieldname": "section_break_21",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Accounting Dimensions"
   },
   {
    "fieldname": "accounting_dimensions",
    "fieldtype": "Table",
-   "label": "Accounting Dimensions",
    "options": "Multi-Dimensional Accounting Dimension Table"
   },
   {
@@ -139,12 +145,41 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "general_details_section",
+   "fieldtype": "Section Break",
+   "label": "General Details"
+  },
+  {
+   "fieldname": "column_break_sscp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "percentage_used",
+   "fieldtype": "Percent",
+   "label": "Percentage Used"
+  },
+  {
+   "fieldname": "planned_budget",
+   "fieldtype": "Currency",
+   "label": "Planned Budget"
+  },
+  {
+   "fieldname": "allowed_moun",
+   "fieldtype": "Currency",
+   "label": "Allowed Budget"
+  },
+  {
+   "fieldname": "unspent_budget",
+   "fieldtype": "Currency",
+   "label": "Unspent Budget"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-20 12:20:59.119861",
+ "modified": "2025-03-21 11:27:01.664453",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",

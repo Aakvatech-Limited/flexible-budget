@@ -12,13 +12,14 @@
   {
    "fieldname": "accounting_dimension",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Accounting Dimension"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-20 12:48:27.688934",
+ "modified": "2025-03-20 17:34:27.526704",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Accounting Dimension Table",
