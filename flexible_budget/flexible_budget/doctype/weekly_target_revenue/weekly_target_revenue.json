@@ -70,12 +70,12 @@
    "fieldname": "accounting_dimensions",
    "fieldtype": "Table",
    "label": "Dimensions",
-   "options": "Weekly Dimension Accounting"
+   "options": "Weekly Target Revenue Details"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-20 18:11:04.721650",
+ "modified": "2025-03-21 14:30:45.270253",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Weekly Target Revenue",

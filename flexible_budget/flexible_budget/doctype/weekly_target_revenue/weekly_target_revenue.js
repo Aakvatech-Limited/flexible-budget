@@ -23,4 +23,25 @@ frappe.ui.form.on("Weekly Target Revenue", {
       },
     });
   },
+
+  before_save: function (frm) {
+    let seen = new Set();
+    let unique_rows = [];
+
+    frm.doc.accounting_dimensions.forEach((row) => {
+      if (!seen.has(row.accounting_dimension)) {
+        seen.add(row.accounting_dimension);
+        unique_rows.push(row);
+      }
+    });
+
+    frm.doc.accounting_dimensions = [];
+
+    unique_rows.forEach((row) => {
+      let new_row = frm.add_child("accounting_dimensions");
+      new_row.accounting_dimension = row.accounting_dimension;
+    });
+
+    frm.refresh_field("accounting_dimensions");
+  },
 });

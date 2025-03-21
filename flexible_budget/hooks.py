@@ -137,12 +137,9 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-doc_events = {
-    "Weekly Target Revenue": {
-      "before_save": "flexible_budget.flexible_budget.doctype.weekly_target_revenue.weekly_target_revenue.remove_duplicate_dimensions"
-  },
-
-}
+# doc_events = {
+    
+# }
 
 # Scheduled Tasks
 # ---------------
