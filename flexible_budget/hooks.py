@@ -137,13 +137,11 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Multi Dimensional Budget": {
+        "before_save": "flexible_budget.flexible_budget.doctype.multi_dimensional_budget.multi_dimensional_budget.remove_duplicate_dimensions"
+    }
+}
 
 # Scheduled Tasks
 # ---------------
