@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-03-20 17:50:38.079443",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "multi_dimensional_budget_control_action_section",
+  "applicable_on_material_request",
+  "action_if_annual_budget_exceeded_on_mr",
+  "action_if_accumulated_monthly_budget_exceeded_on_mr",
+  "column_break_lswe",
+  "applicable_on_purchase_order",
+  "action_if_annual_budget_exceeded_on_po",
+  "action_if_accumulated_monthly_budget_exceeded_on_po",
+  "section_break_xbyu",
+  "applicable_on_booking_actual_expenses",
+  "action_if_annual_budget_exceeded_on_actual",
+  "action_if_accumulated_monthly_budget_exceeded_on_actual"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "applicable_on_material_request",
+   "fieldtype": "Check",
+   "label": "Applicable on Material Request"
+  },
+  {
+   "default": "0",
+   "fieldname": "applicable_on_booking_actual_expenses",
+   "fieldtype": "Check",
+   "label": "Applicable on booking actual expenses"
+  },
+  {
+   "fieldname": "column_break_lswe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "applicable_on_purchase_order",
+   "fieldtype": "Check",
+   "label": "Applicable on Purchase Order"
+  },
+  {
+   "default": "Stop",
+   "depends_on": "eval:doc.applicable_on_material_request == 1",
+   "fieldname": "action_if_annual_budget_exceeded_on_mr",
+   "fieldtype": "Select",
+   "label": "Action if Annual Budget Exceeded on MR",
+   "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "default": "Warn",
+   "depends_on": "eval:doc.applicable_on_material_request == 1",
+   "fieldname": "action_if_accumulated_monthly_budget_exceeded_on_mr",
+   "fieldtype": "Select",
+   "label": "Action if Accumulated Monthly Budget Exceeded on MR",
+   "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "default": "Stop",
+   "depends_on": "eval:doc.applicable_on_purchase_order == 1",
+   "fieldname": "action_if_annual_budget_exceeded_on_po",
+   "fieldtype": "Select",
+   "label": "Action if Annual Budget Exceeded on PO",
+   "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "default": "Warn",
+   "depends_on": "eval:doc.applicable_on_purchase_order == 1",
+   "fieldname": "action_if_accumulated_monthly_budget_exceeded_on_po",
+   "fieldtype": "Select",
+   "label": "Action if Accumulated Monthly Budget Exceeded on PO",
+   "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "fieldname": "section_break_xbyu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Stop",
+   "depends_on": "eval:doc.applicable_on_booking_actual_expenses == 1",
+   "fieldname": "action_if_annual_budget_exceeded_on_actual",
+   "fieldtype": "Select",
+   "label": "Action if Annual Budget Exceeded on Actual",
+   "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "default": "Warn",
+   "depends_on": "eval:doc.applicable_on_booking_actual_expenses == 1",
+   "fieldname": "action_if_accumulated_monthly_budget_exceeded_on_actual",
+   "fieldtype": "Select",
+   "label": "Action if Accumulated Monthly Budget Exceeded on Actual",
+   "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "fieldname": "multi_dimensional_budget_control_action_section",
+   "fieldtype": "Section Break",
+   "label": "Multi dimensional budget control action"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-03-20 18:12:35.488370",
+ "modified_by": "Administrator",
+ "module": "Flexible Budget",
+ "name": "Flexible Budget Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
