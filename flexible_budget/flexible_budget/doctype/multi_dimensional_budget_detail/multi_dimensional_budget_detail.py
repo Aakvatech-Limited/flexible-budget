@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class MultiDimensionalAccountingDimensionTable(Document):
+class MultiDimensionalBudgetDetail(Document):
 	pass

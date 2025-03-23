@@ -134,7 +134,7 @@
   {
    "fieldname": "accounting_dimensions",
    "fieldtype": "Table",
-   "options": "Multi-Dimensional Budget Details"
+   "options": "Multi-Dimensional Budget Detail"
   },
   {
    "fieldname": "amended_from",
@@ -179,7 +179,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-21 15:47:12.357086",
+ "modified": "2025-03-23 21:57:35.853370",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",
