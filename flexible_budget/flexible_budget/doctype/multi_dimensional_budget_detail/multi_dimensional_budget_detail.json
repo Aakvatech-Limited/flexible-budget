@@ -1,0 +1,31 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-03-19 16:11:02.070395",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "accounting_dimension"
+ ],
+ "fields": [
+  {
+   "fieldname": "accounting_dimension",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Accounting Dimension"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-03-20 17:34:27.526704",
+ "modified_by": "Administrator",
+ "module": "Flexible Budget",
+ "name": "Multi-Dimensional Budget Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
