@@ -1,13 +1,14 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-03-25 13:15:48.017682",
  "default_view": "List",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-    "company_section",
-    "company",
+  "company_section",
+  "company",
   "multi_dimensional_budget_settings_section",
   "applicable_on_material_request",
   "action_if_annual_budget_exceeded_on_mr",
@@ -20,26 +21,26 @@
   "applicable_on_booking_actual_expenses",
   "action_if_annual_budget_exceeded_on_actual",
   "action_if_accumulated_monthly_budget_exceeded_on_actual",
-  "weekly_revenue_settings_section",
+  "revenue_settings_section",
   "enable_auto_calculation",
   "frequency",
   "column_break_gljc",
   "target_calculation_method",
   "fixed_target_revenue_amount",
-  "section_break_nqqg",
-  "specifics"
+  "section_break_ktyk",
+  "naming_series"
  ],
  "fields": [
-    {
-     "fieldname": "company_section",
-     "fieldtype": "Section Break"
-    },
-    {
-     "fieldname": "company",
-     "fieldtype": "Link",
-     "label": "Company",
-     "options": "Company"
-    },
+  {
+   "fieldname": "company_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
   {
    "fieldname": "multi_dimensional_budget_settings_section",
    "fieldtype": "Section Break",
@@ -120,11 +121,6 @@
    "options": "\nStop\nWarn\nIgnore"
   },
   {
-   "fieldname": "weekly_revenue_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Weekly Revenue Settings"
-  },
-  {
    "default": "0",
    "fieldname": "enable_auto_calculation",
    "fieldtype": "Check",
@@ -135,7 +131,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Frequency",
-   "options": "\nWeekly\nMonthly\n3 Months\nQuarterly\n6 Months\nYearly"
+   "options": "\nWeekly\nMonthly\nQuarterly\nHalf-yearly\nYearly"
   },
   {
    "fieldname": "column_break_gljc",
@@ -154,24 +150,29 @@
    "label": "Fixed Target Revenue Amount\t"
   },
   {
-   "depends_on": "eval:doc.target_calculation_method==\"Fixed Target\"\n",
-   "fieldname": "section_break_nqqg",
-   "fieldtype": "Section Break",
-   "label": "Branch Specific Revenue Targets\t"
+   "fieldname": "section_break_ktyk",
+   "fieldtype": "Section Break"
   },
   {
-   "fieldname": "specifics",
-   "fieldtype": "Table",
-   "label": "Specifics",
-   "options": "Weekly Revenue Specifics"
+   "default": "FBS-",
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series"
+  },
+  {
+   "fieldname": "revenue_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Revenue Settings"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-25 13:15:48.017682",
+ "modified": "2025-03-27 15:15:25.524765",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Flexible Budget Setting",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
@@ -187,5 +188,8 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "company",
+ "track_changes": 1,
+ "track_seen": 1
 }
