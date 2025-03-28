@@ -1,20 +1,20 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:title",
+ "autoname": "naming_series:",
  "creation": "2025-03-18 15:00:14.456073",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "title",
   "company",
-  "week_start_date",
-  "week_end_date",
+  "start_date",
+  "end_date",
+  "column_break_mnfm",
   "target_amount",
   "collected_amount",
   "target_percentage",
-  "section_break_ptfa",
-  "accounting_dimensions"
+  "section_break_gjms",
+  "naming_series"
  ],
  "fields": [
   {
@@ -24,28 +24,10 @@
    "options": "Company"
   },
   {
-   "fieldname": "title",
-   "fieldtype": "Data",
-   "label": "Name",
-   "unique": 1
-  },
-  {
    "fieldname": "target_amount",
    "fieldtype": "Currency",
    "label": "Target Amount",
-   "reqd": 1
-  },
-  {
-   "fieldname": "week_start_date",
-   "fieldtype": "Date",
-   "label": "Week Start Date",
-   "reqd": 1
-  },
-  {
-   "fieldname": "week_end_date",
-   "fieldtype": "Date",
-   "label": "Week End Date",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "collected_amount",
@@ -63,23 +45,40 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_ptfa",
+   "fieldname": "column_break_mnfm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_gjms",
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "accounting_dimensions",
-   "fieldtype": "Table",
-   "label": "Dimensions",
-   "options": "Weekly Target Revenue Details"
+   "default": "TR-",
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-21 14:30:45.270253",
+ "modified": "2025-03-27 15:34:24.079445",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
- "name": "Weekly Target Revenue",
- "naming_rule": "By fieldname",
+ "name": "Target Revenue",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
