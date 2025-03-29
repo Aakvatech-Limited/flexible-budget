@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 
-class FlexibleBudgetSetting(Document):
+class CompanyBudgetControl(Document):
 
     def validate(self):
         self.validate_required_fields()
