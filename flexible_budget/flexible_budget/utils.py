@@ -29,7 +29,7 @@ def update_target_revenue_from_invoice(doc, method):
 
     # Check for auto calculation
     settings = frappe.db.get_value(
-        "Flexible Budget Setting",
+        "Company Budget Control",
         {"company": company},
         ["enable_auto_calculation"],
         as_dict=True

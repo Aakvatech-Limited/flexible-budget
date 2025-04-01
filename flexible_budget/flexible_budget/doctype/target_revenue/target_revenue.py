@@ -16,6 +16,35 @@ class TargetRevenue(Document):
         self.set_target_amount_from_settings()
         self.calculate_target_percentage()
 
+    def on_submit(self):
+        # Calculate collected_amount from existing Sales Invoices
+        self.update_collected_amount_from_historical_invoices()
+
+    def update_collected_amount_from_historical_invoices(self):
+        # Query all Sales Invoices within the Target Revenue's date range
+        sales_invoices = frappe.db.sql("""
+            SELECT name, grand_total, is_return
+            FROM `tabSales Invoice`
+            WHERE 
+                company = %s 
+                AND posting_date BETWEEN %s AND %s 
+                AND docstatus = 1
+        """, (self.company, self.start_date, self.end_date), as_dict=True)
+
+        # Calculate net collected amount (including returns)
+        collected_amount = 0
+        for invoice in sales_invoices:
+            if invoice.is_return:
+                collected_amount -= abs(invoice.grand_total)  # Subtract returns
+            else:
+                collected_amount += invoice.grand_total  # Add normal invoices
+
+        # Update collected_amount and recalculate target_percentage
+        self.collected_amount = collected_amount
+        self.calculate_target_percentage()
+        self.save(ignore_permissions=True)
+        frappe.db.commit()
+
     def check_existing_target_revenue(self):
         # Check if there is an active Target Revenue for the same company
         existing_target = frappe.db.exists(
@@ -30,7 +59,7 @@ class TargetRevenue(Document):
 
     def calculate_target_percentage(self):
         settings = frappe.db.get_value(
-            "Flexible Budget Setting",
+            "Company Budget Control",
             {"company": self.company},
             ["enable_auto_calculation", "target_calculation_method"],
             as_dict=True
@@ -49,7 +78,7 @@ class TargetRevenue(Document):
         if self.start_date and not self.end_date:
             start_date = getdate(self.start_date)
             settings = frappe.db.get_value(
-                "Flexible Budget Setting",
+                "Company Budget Control",
                 {"company": self.company},
                 ["frequency"],
                 as_dict=True
@@ -69,7 +98,7 @@ class TargetRevenue(Document):
 
     def set_target_amount_from_settings(self):
         settings = frappe.db.get_value(
-            "Flexible Budget Setting",
+            "Company Budget Control",
             {"company": self.company},
             ["target_calculation_method", "fixed_target_revenue_amount"],
             as_dict=True
@@ -82,3 +111,4 @@ class TargetRevenue(Document):
 
         if method == "fixed target":
             self.target_amount = settings.get("fixed_target_revenue_amount") or 0
+
