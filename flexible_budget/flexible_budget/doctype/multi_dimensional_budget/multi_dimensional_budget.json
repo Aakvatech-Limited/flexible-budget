@@ -11,10 +11,11 @@
   "general_details_section",
   "company",
   "percentage_used",
+  "spent_amount",
   "column_break_sscp",
-  "planned_budget",
-  "allowed_moun",
-  "unspent_budget",
+  "planned_amount",
+  "allowed_amount",
+  "unspent_amount",
   "section_break_21",
   "accounting_dimensions",
   "section_break_6",
@@ -129,11 +130,12 @@
   {
    "fieldname": "section_break_21",
    "fieldtype": "Section Break",
-   "label": "Accounting Dimensions"
+   "label": "Setting Accounting Dimension"
   },
   {
    "fieldname": "accounting_dimensions",
    "fieldtype": "Table",
+   "label": "Accounting Dimensions",
    "options": "Multi-Dimensional Budget Detail"
   },
   {
@@ -161,25 +163,30 @@
    "label": "Percentage Used"
   },
   {
-   "fieldname": "planned_budget",
+   "fieldname": "planned_amount",
    "fieldtype": "Currency",
-   "label": "Planned Budget"
+   "label": "Planned Amount"
   },
   {
-   "fieldname": "allowed_moun",
+   "fieldname": "allowed_amount",
    "fieldtype": "Currency",
-   "label": "Allowed Budget"
+   "label": "Allowed Amount"
   },
   {
-   "fieldname": "unspent_budget",
+   "fieldname": "unspent_amount",
    "fieldtype": "Currency",
-   "label": "Unspent Budget"
+   "label": "Unspent Amount"
+  },
+  {
+   "fieldname": "spent_amount",
+   "fieldtype": "Data",
+   "label": "Spent Amount"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-23 21:57:35.853370",
+ "modified": "2025-04-01 23:41:00.096279",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",
