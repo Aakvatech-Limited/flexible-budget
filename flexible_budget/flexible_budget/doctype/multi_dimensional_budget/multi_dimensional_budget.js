@@ -17,17 +17,23 @@ frappe.ui.form.on("Multi-Dimensional Budget", {
                 }
             }
         });
-	},
-    
-        before_save: function(frm) {
+    },
+
+validate: function(frm) {
         let seen = new Set();
         let unique_rows = [];
 
         // Loop through the current child table rows
         frm.doc.accounting_dimensions.forEach(row => {
-            if (!seen.has(row.accounting_dimension)) {
-                seen.add(row.accounting_dimension);
-                unique_rows.push(row);
+             // Create a unique key based on both fields
+        const key = `${row.accounting_dimension}`;
+    
+            if (!seen.has(key)) {
+                seen.add(key);
+                unique_rows.push({
+                    accounting_dimension: row.accounting_dimension,
+                    accounting_dimension_name: row.accounting_dimension_name
+               });
             }
         });
 
@@ -39,15 +45,13 @@ frappe.ui.form.on("Multi-Dimensional Budget", {
         unique_rows.forEach(row => {
             let new_row = frm.add_child('accounting_dimensions');
             new_row.accounting_dimension = row.accounting_dimension;
-
-            // Copy other fields if needed
-            // Example: new_row.amount = row.amount;
+            new_row.accounting_dimension_name = row.accounting_dimension_name;
         });
 
         frm.refresh_field('accounting_dimensions');
 
         // if (removed > 0) {
-        //     frappe.msgprint(`${removed} duplicate Accounting Dimension(s) removed.`);
-        // }
+        //     frappe.msgprint(${removed} duplicate Accounting Dimension(s) removed.);
+        // }    
     }
-});
+})
