@@ -139,7 +139,7 @@ app_license = "mit"
 
 doc_events = {
     "Sales Invoice": {
-        "before_submit": "flexible_budget.flexible_budget.utils.update_target_revenue_from_invoice"
+        "on_submit": "flexible_budget.flexible_budget.utils.update_target_revenue_from_invoice"
     }
 }
 
