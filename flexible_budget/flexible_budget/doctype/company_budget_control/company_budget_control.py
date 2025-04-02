@@ -24,6 +24,6 @@ class CompanyBudgetControl(Document):
                 frappe.throw("<b>Fixed Target Revenue Amount</b> cannot be Negative.")
 
     def validate_unique_company(self):
-        if frappe.db.exists("Flexible Budget Setting", {"company": self.company, "name": ["!=", self.name]}):
-            frappe.throw(f"A Flexible Budget Setting already exists for the company <b>{self.company}</b>.")
+        if frappe.db.exists("Company Budget Control", {"company": self.company, "name": ["!=", self.name]}):
+            frappe.throw(f"A Company Budget Control already exists for the company <b>{self.company}</b>.")
 
