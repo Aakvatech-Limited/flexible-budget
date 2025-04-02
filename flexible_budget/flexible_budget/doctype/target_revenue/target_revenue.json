@@ -14,7 +14,8 @@
   "collected_amount",
   "target_percentage",
   "section_break_gjms",
-  "naming_series"
+  "naming_series",
+  "amended_from"
  ],
  "fields": [
   {
@@ -30,6 +31,7 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "collected_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -37,6 +39,7 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "depends_on": "eval:doc.target_amount > 0",
    "fieldname": "target_percentage",
    "fieldtype": "Percent",
@@ -70,11 +73,22 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Naming Series"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Target Revenue",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-03-27 15:34:24.079445",
+ "modified": "2025-04-02 14:47:47.267563",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Target Revenue",

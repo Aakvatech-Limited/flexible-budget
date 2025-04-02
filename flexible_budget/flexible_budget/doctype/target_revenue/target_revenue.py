@@ -16,7 +16,7 @@ class TargetRevenue(Document):
         self.set_target_amount_from_settings()
         self.calculate_target_percentage()
 
-    def on_submit(self):
+    def before_submit(self):
         # Calculate collected_amount from existing Sales Invoices
         self.update_collected_amount_from_historical_invoices()
 
