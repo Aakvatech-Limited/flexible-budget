@@ -8,30 +8,32 @@
  "field_order": [
   "accounting_dimension",
   "column_break_cfhq",
-  "specific"
+  "accounting_dimension_name"
  ],
  "fields": [
   {
    "fieldname": "accounting_dimension",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Accounting Dimension"
-  },
-  {
-   "fieldname": "specific",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Specific"
+   "label": "Accounting Dimension",
+   "link_filters": "[[\"DocType\",\"name\",\"=\",null]]"
   },
   {
    "fieldname": "column_break_cfhq",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accounting_dimension_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Accounting Dimension Name",
+   "options": "accounting_dimension"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-02 08:30:18.041909",
+ "modified": "2025-04-02 12:30:00.414730",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget Detail",

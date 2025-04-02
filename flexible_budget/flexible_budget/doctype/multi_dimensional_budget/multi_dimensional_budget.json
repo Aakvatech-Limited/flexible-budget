@@ -160,33 +160,38 @@
   {
    "fieldname": "percentage_used",
    "fieldtype": "Percent",
-   "label": "Percentage Used"
+   "label": "Percentage Used",
+   "read_only": 1
   },
   {
    "fieldname": "planned_amount",
    "fieldtype": "Currency",
-   "label": "Planned Amount"
+   "label": "Planned Amount",
+   "reqd": 1
   },
   {
    "fieldname": "allowed_amount",
    "fieldtype": "Currency",
-   "label": "Allowed Amount"
+   "label": "Allowed Amount",
+   "read_only": 1
   },
   {
    "fieldname": "unspent_amount",
    "fieldtype": "Currency",
-   "label": "Unspent Amount"
+   "label": "Unspent Amount",
+   "read_only": 1
   },
   {
    "fieldname": "spent_amount",
    "fieldtype": "Data",
-   "label": "Spent Amount"
+   "label": "Spent Amount",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-01 23:41:00.096279",
+ "modified": "2025-04-02 09:26:12.172038",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",

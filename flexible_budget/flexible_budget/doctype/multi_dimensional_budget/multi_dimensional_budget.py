@@ -80,30 +80,41 @@ def calculate_budget_usage(docname):
         "spent_amount": total_expenses,
         "percentage_used": percentage_used
     }
+@frappe.whitelist()
+def custom_doctype_query(doctype, txt, searchfield, start, page_len, filters):
+    # Get all installed Doctypes
+    all_doctypes = frappe.get_all("DocType", pluck="name")
+
+    # Get values from your Accounting Dimension records
+    dim_names = frappe.get_all("Accounting Dimension", pluck="name")
+
+    # Add hardcoded extras
+    extra = ["Cost Center", "Project"]
+
+    # Merge and filter only those that actually exist
+    allowed = list(set(dim_names + extra))
+    valid_doctypes = [d for d in allowed if d in all_doctypes]
+
+    # Apply search text
+    filtered = [dt for dt in valid_doctypes if txt.lower() in dt.lower()]
+    filtered.sort()
+
+    return [(dt, dt) for dt in filtered[start:start + page_len]]
 
 @frappe.whitelist()
-def dynamic_link_query(doctype, txt, searchfield, start, page_len, filters):
-    target_doctype = filters.get("target_doctype")
-
-    if not target_doctype:
-        return []
-
-    return frappe.db.sql(f"""
-        SELECT name
-        FROM `tab{target_doctype}`
-        WHERE `{searchfield}` LIKE %s
-        ORDER BY name
-        LIMIT %s OFFSET %s
-    """, (f"%{txt}%", page_len, start))
-
-@frappe.whitelist()
-def get_specific_options_for_dimension(dimension):
+def get_dynamic_link_target_for_dimension(dimension):
+    """Return the Doctype that should be used as the dynamic link target."""
     if not dimension:
-        return []
+        return ""
 
+    # Hardcoded direct mappings for manually added options
+    if dimension in ["Cost Center", "Project"]:
+        return dimension
+
+    # Otherwise, fetch from the Accounting Dimension doctype
     try:
-        records = frappe.get_all(dimension, fields=["name"], limit=1000)
-        return [r["name"] for r in records]
+        return frappe.db.get_value("Accounting Dimension", dimension, "document_type") or ""
     except Exception as e:
-        frappe.log_error(f"Error fetching specifics for dimension {dimension}", title="Specific Fetch Error")
-        return []
+        frappe.log_error(f"Error resolving dynamic link for dimension: {dimension}", title="Dynamic Link Error")
+        return ""
+
