@@ -8,7 +8,49 @@ from datetime import date
 
 
 class MultiDimensionalBudget(Document):
-	pass
+    def validate(self):
+        frappe.msgprint("Validate triggered!")
+        if not self.company or not self.from_date or not self.to_date:
+            return    
+        frappe.msgprint("Validate triggered! 1")
+        self.validate_date_overlap()
+
+    def validate_date_overlap(self):
+        frappe.msgprint("Validate triggered! 2")
+
+        existing_budgets = frappe.get_all(
+            "Multi-Dimensional Budget",
+            filters={
+                "company": self.company,
+                "name": ["!=", self.name],  # Exclude current doc in case of edit
+                "from_date": ["<=", self.to_date],
+                "to_date": [">=", self.from_date]
+            },
+            fields=["name"]
+        )
+
+        if not existing_budgets:
+            return
+
+        frappe.msgprint("Validate triggered! 3")
+
+        for budget in existing_budgets:
+            other = frappe.get_doc("Multi-Dimensional Budget", budget.name)
+
+            current_set = {
+                (row.accounting_dimension.strip(), row.accounting_dimension_name.strip())
+                for row in self.accounting_dimensions
+            }
+            other_set = {
+                (row.accounting_dimension.strip(), row.accounting_dimension_name.strip())
+                for row in other.accounting_dimensions
+            }
+
+            if current_set == other_set:
+                frappe.throw(
+                    ("A Multi-Dimensional Budget with the same accounting dimension composition already exists for this period (Overlap with: <a href='/app/multi-dimensional-budget/{0}'>{0}</a>)").format(other.name),
+                    title=("Duplicate Budget Not Allowed")
+                )
 
 @frappe.whitelist()
 def get_acc_dimensions():
