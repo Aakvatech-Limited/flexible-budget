@@ -19,7 +19,7 @@
   "section_break_21",
   "accounting_dimensions",
   "section_break_vlyw",
-  "from_date",
+  "start_date",
   "frequency",
   "column_break_wefk",
   "end_date",
@@ -140,11 +140,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "from_date",
-   "fieldtype": "Date",
-   "label": "Start Date"
-  },
-  {
    "fieldname": "frequency",
    "fieldtype": "Select",
    "label": "Frequency",
@@ -186,12 +181,17 @@
    "fieldtype": "Date",
    "label": "End Date",
    "read_only": 1
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-03 18:16:55.111668",
+ "modified": "2025-04-03 18:21:04.077054",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",
