@@ -20,9 +20,6 @@
   "accounting_dimensions",
   "section_break_vlyw",
   "from_date",
-  "monthly_distiribution",
-  "column_break_srsv",
-  "to_date",
   "frequency",
   "section_break_6",
   "applicable_on_material_request",
@@ -143,22 +140,7 @@
   {
    "fieldname": "from_date",
    "fieldtype": "Date",
-   "label": "From Date"
-  },
-  {
-   "fieldname": "monthly_distiribution",
-   "fieldtype": "Link",
-   "label": "Monthly Distiribution",
-   "options": "Monthly Distribution"
-  },
-  {
-   "fieldname": "column_break_srsv",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "to_date",
-   "fieldtype": "Date",
-   "label": "To Date"
+   "label": "Start Date"
   },
   {
    "fieldname": "frequency",
@@ -197,7 +179,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-03 17:35:36.872935",
+ "modified": "2025-04-03 17:50:32.191012",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",
