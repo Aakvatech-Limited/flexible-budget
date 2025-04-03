@@ -24,9 +24,11 @@
   "revenue_settings_section",
   "enable_auto_calculation",
   "frequency",
+  "action_if_no_target_revenue",
   "column_break_gljc",
   "target_calculation_method",
   "fixed_target_revenue_amount",
+  "group_income_account",
   "section_break_ktyk",
   "naming_series"
  ],
@@ -164,11 +166,24 @@
    "fieldname": "revenue_settings_section",
    "fieldtype": "Section Break",
    "label": "Revenue Settings"
+  },
+  {
+   "default": "Warn",
+   "fieldname": "action_if_no_target_revenue",
+   "fieldtype": "Select",
+   "label": "Action If No Target Revenue Exists",
+   "options": "Stop\nWarn\nIgnore"
+  },
+  {
+   "fieldname": "group_income_account",
+   "fieldtype": "Link",
+   "label": "Group Income Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-27 15:15:25.524765",
+ "modified": "2025-04-03 18:29:14.466792",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Company Budget Control",
