@@ -21,6 +21,8 @@
   "section_break_vlyw",
   "from_date",
   "frequency",
+  "column_break_wefk",
+  "end_date",
   "section_break_6",
   "applicable_on_material_request",
   "action_if_budget_exceeded_on_mr",
@@ -174,12 +176,22 @@
    "fieldtype": "Select",
    "label": "Action if Budget Exceeded on Actual",
    "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "fieldname": "column_break_wefk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-03 17:50:32.191012",
+ "modified": "2025-04-03 18:16:55.111668",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",
