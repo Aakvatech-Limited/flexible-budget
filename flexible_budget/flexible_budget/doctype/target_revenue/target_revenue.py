@@ -9,18 +9,21 @@ from frappe.utils import add_days, add_months, getdate
 from flexible_budget.flexible_budget.utils import update_revenue
 
 class TargetRevenue(Document):
-    def validate(self):
-        if self.is_new():
-            self.check_existing_target_revenue()
+    def before_insert(self):
+        settings = frappe.db.get_value(
+            "Company Budget Control",
+            {"company": self.company},
+            ["frequency", "target_calculation_method", "fixed_target_revenue_amount"],
+            as_dict=True
+        )
+        self.set_end_date_from_frequency(settings)
+        self.set_target_amount_from_settings(settings)
+    
 
-        self.set_end_date_from_frequency()
-        self.set_target_amount_from_settings()
+    def before_save(self):
+        self.check_existing_target_revenue()
         self.calculate_target_percentage()
 
-
-    def before_submit(self):
-        pass
-        
     
     def on_submit(self):
         enqueue(
@@ -34,7 +37,8 @@ class TargetRevenue(Document):
             "Target Revenue",
             {
                 "company": self.company,
-                "end_date": (">=", self.start_date)
+                "name": ["!=", self.name],
+                "end_date": (">=", self.start_date),
             }
         )
         if existing_target:
@@ -58,15 +62,19 @@ class TargetRevenue(Document):
                 self.target_percentage = ((self.collected_amount or 0) / (self.target_amount)) * 100
 
 
-    def set_end_date_from_frequency(self):
-        if self.start_date and not self.end_date:
-            start_date = getdate(self.start_date)
+    @frappe.whitelist()
+    def set_end_date_from_frequency(self, settings=None, caller=None):
+        if not settings:
             settings = frappe.db.get_value(
                 "Company Budget Control",
                 {"company": self.company},
                 ["frequency"],
                 as_dict=True
             )
+        
+        if self.start_date:
+            start_date = getdate(self.start_date)
+            
             frequency = (settings.get("frequency") or "").strip().lower() if settings else ""
 
             if frequency == "weekly":
@@ -79,16 +87,11 @@ class TargetRevenue(Document):
                 self.end_date = add_months(start_date, 6) - timedelta(days=1)
             elif frequency == "yearly":
                 self.end_date = add_months(start_date, 12) - timedelta(days=1)
+        
+        return self.end_date
 
 
-    def set_target_amount_from_settings(self):
-        settings = frappe.db.get_value(
-            "Company Budget Control",
-            {"company": self.company},
-            ["target_calculation_method", "fixed_target_revenue_amount"],
-            as_dict=True
-        )
-
+    def set_target_amount_from_settings(self, settings):
         if not settings:
             return
 
