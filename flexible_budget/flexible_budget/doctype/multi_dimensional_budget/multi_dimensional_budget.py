@@ -188,21 +188,16 @@ class MultiDimensionalBudget(Document):
     
 
 @frappe.whitelist()
-def custom_doctype_query(doctype, txt, searchfield, start, page_len, filters):
-    # Get all Doctype names from your custom Accounting Dimension records
+def custom_dimension_query(doctype, txt, searchfield, start, page_len, filters):
+    # Get Accounting Dimensions from the doctype
     dim_names = frappe.get_all("Accounting Dimension", pluck="name")
+    custom = ["Cost Center", "Project"]
 
-    # Add custom hardcoded doctypes
-    extra = ["Cost Center", "Project"]
+    all_options = list(set(dim_names + custom))
 
-    # Merge and de-duplicate
-    all_doctypes = list(set(dim_names + extra))
+    # Remove already-selected dimensions (if any)
+    exclude = filters.get("exclude_dimensions", [])
+    final = [d for d in all_options if d not in exclude and txt.lower() in d.lower()]
+    final.sort()
 
-    # Filter by search text
-    filtered = [dt for dt in all_doctypes if txt.lower() in dt.lower()]
-    filtered.sort()
-
-    # Format for Frappe autocomplete [(value, label)]
-    return [(dt, dt) for dt in filtered[start:start + page_len]]
-
-
+    return [(d, d) for d in final[start:start + page_len]]
