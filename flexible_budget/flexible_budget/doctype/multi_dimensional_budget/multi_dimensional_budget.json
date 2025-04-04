@@ -10,28 +10,27 @@
  "field_order": [
   "general_details_section",
   "company",
-  "percentage_used",
-  "spent_amount",
-  "column_break_sscp",
+  "start_date",
+  "end_date",
+  "column_break_ifsv",
   "planned_amount",
   "allowed_amount",
-  "unspent_amount",
-  "section_break_21",
-  "accounting_dimensions",
-  "section_break_vlyw",
-  "start_date",
-  "frequency",
-  "column_break_wefk",
-  "end_date",
+  "column_break_sscp",
+  "percentage_used",
+  "amount_used",
+  "unused_amount",
   "section_break_6",
   "applicable_on_material_request",
   "action_if_budget_exceeded_on_mr",
   "column_break_13",
   "applicable_on_purchase_order",
   "action_if_budget_exceeded_on_po",
-  "section_break_16",
+  "column_break_ynjg",
   "applicable_on_booking_actual_expenses",
   "action_if_budget_exceeded",
+  "section_break_21",
+  "accounting_dimensions",
+  "section_break_16",
   "amended_from"
  ],
  "fields": [
@@ -42,7 +41,8 @@
    "in_standard_filter": 1,
    "label": "Company",
    "options": "Company",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "section_break_6",
@@ -53,7 +53,8 @@
    "default": "0",
    "fieldname": "applicable_on_material_request",
    "fieldtype": "Check",
-   "label": "Applicable on Material Request"
+   "label": "Applicable on Material Request",
+   "search_index": 1
   },
   {
    "fieldname": "column_break_13",
@@ -63,7 +64,8 @@
    "default": "0",
    "fieldname": "applicable_on_purchase_order",
    "fieldtype": "Check",
-   "label": "Applicable on Purchase Order"
+   "label": "Applicable on Purchase Order",
+   "search_index": 1
   },
   {
    "fieldname": "section_break_16",
@@ -73,7 +75,8 @@
    "default": "0",
    "fieldname": "applicable_on_booking_actual_expenses",
    "fieldtype": "Check",
-   "label": "Applicable on booking actual expenses"
+   "label": "Applicable on booking actual expenses",
+   "search_index": 1
   },
   {
    "fieldname": "section_break_21",
@@ -109,7 +112,8 @@
    "fieldname": "percentage_used",
    "fieldtype": "Percent",
    "label": "Percentage Used",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "planned_amount",
@@ -121,29 +125,8 @@
    "fieldname": "allowed_amount",
    "fieldtype": "Currency",
    "label": "Allowed Amount",
-   "read_only": 1
-  },
-  {
-   "fieldname": "unspent_amount",
-   "fieldtype": "Currency",
-   "label": "Unspent Amount",
-   "read_only": 1
-  },
-  {
-   "fieldname": "spent_amount",
-   "fieldtype": "Data",
-   "label": "Spent Amount",
-   "read_only": 1
-  },
-  {
-   "fieldname": "section_break_vlyw",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "frequency",
-   "fieldtype": "Select",
-   "label": "Frequency",
-   "options": "Weekly\nMonthly\nQuarterly\nBi-Annually\nYearly"
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "allow_on_submit": 1,
@@ -152,7 +135,8 @@
    "fieldname": "action_if_budget_exceeded_on_mr",
    "fieldtype": "Select",
    "label": "Action if Budget Exceeded on MR",
-   "options": "\nStop\nWarn\nIgnore"
+   "options": "\nStop\nWarn\nIgnore",
+   "search_index": 1
   },
   {
    "allow_on_submit": 1,
@@ -161,7 +145,8 @@
    "fieldname": "action_if_budget_exceeded_on_po",
    "fieldtype": "Select",
    "label": "Action if Budget Exceeded on PO",
-   "options": "\nStop\nWarn\nIgnore"
+   "options": "\nStop\nWarn\nIgnore",
+   "search_index": 1
   },
   {
    "allow_on_submit": 1,
@@ -170,28 +155,50 @@
    "fieldname": "action_if_budget_exceeded",
    "fieldtype": "Select",
    "label": "Action if Budget Exceeded on Actual",
-   "options": "\nStop\nWarn\nIgnore"
-  },
-  {
-   "fieldname": "column_break_wefk",
-   "fieldtype": "Column Break"
+   "options": "\nStop\nWarn\nIgnore",
+   "search_index": 1
   },
   {
    "fieldname": "end_date",
    "fieldtype": "Date",
    "label": "End Date",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "start_date",
    "fieldtype": "Date",
-   "label": "Start Date"
+   "label": "Start Date",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_ifsv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ynjg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount_used",
+   "fieldtype": "Currency",
+   "label": "Amount Used",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "unused_amount",
+   "fieldtype": "Currency",
+   "label": "Unused Amount",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-03 18:21:04.077054",
+ "modified": "2025-04-04 11:28:18.747510",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",
