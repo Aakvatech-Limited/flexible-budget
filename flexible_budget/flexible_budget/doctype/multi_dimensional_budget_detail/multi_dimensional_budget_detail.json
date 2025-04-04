@@ -13,10 +13,10 @@
  "fields": [
   {
    "fieldname": "accounting_dimension",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Accounting Dimension",
-   "link_filters": "[[\"DocType\",\"name\",\"=\",null]]"
+   "options": "DocType"
   },
   {
    "fieldname": "column_break_cfhq",
@@ -33,7 +33,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-02 12:30:00.414730",
+ "modified": "2025-04-04 16:00:32.361058",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget Detail",

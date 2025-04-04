@@ -3,7 +3,8 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import getdate, add_days, add_months, flt
+from frappe.utils import getdate, add_days, add_months
+from datetime import timedelta
 
 
 class MultiDimensionalBudget(Document):
@@ -11,7 +12,8 @@ class MultiDimensionalBudget(Document):
         self.validate_date_overlap()
 
 
-    def before_save(self):
+    def validate(self):
+        self.set_end_date_from_frequency()
         self.validate_required_fields()
         self.validate_date_overlap()
         self.set_allowed_amount()
@@ -119,7 +121,6 @@ class MultiDimensionalBudget(Document):
     def validate_allowed_amount(self):
         if self.allowed_amount <= 0:
             frappe.throw("Allowed Amount must be greater than zero.")
-    
 
     def validate_date_overlap(self):
 
@@ -128,8 +129,8 @@ class MultiDimensionalBudget(Document):
             filters={
                 "company": self.company,
                 "name": ["!=", self.name],  # Exclude current doc in case of edit
-                "from_date": ["<=", self.to_date],
-                "to_date": [">=", self.from_date]
+                "start_date": ["<=", self.end_date],
+                "end_date": [">=", self.start_date]
             },
             fields=["name"]
         )
@@ -156,6 +157,22 @@ class MultiDimensionalBudget(Document):
                     title=("Duplicate Budget Not Allowed")
                 )
 
+    def set_end_date_from_frequency(self):
+        if self.start_date and not self.end_date:
+            start_date = getdate(self.start_date)
+            frequency = self.frequency
+
+            if frequency == "Weekly":
+                self.end_date = add_days(start_date, 6)
+            elif frequency == "Monthly":
+                self.end_date = add_months(start_date, 1) - timedelta(days=1)
+            elif frequency == "Quarterly":
+                self.end_date = add_months(start_date, 3) - timedelta(days=1)
+            elif frequency == "Bi-Annually":
+                self.end_date = add_months(start_date, 6) - timedelta(days=1)
+            elif frequency == "Yearly":
+                self.end_date = add_months(start_date, 12) - timedelta(days=1)             
+
 
     def calculate_budget_usage(self, expense_amount=0):
         """Calculate unspent_budget and percentage_used for this budget period."""
@@ -171,13 +188,21 @@ class MultiDimensionalBudget(Document):
     
 
 @frappe.whitelist()
-def get_acc_dimensions():
-		documents = frappe.get_all("Accounting Dimension", fields=["name"])
+def custom_doctype_query(doctype, txt, searchfield, start, page_len, filters):
+    # Get all Doctype names from your custom Accounting Dimension records
+    dim_names = frappe.get_all("Accounting Dimension", pluck="name")
 
-		options = [doc["name"] for doc in documents]
+    # Add custom hardcoded doctypes
+    extra = ["Cost Center", "Project"]
 
-		options.extend(["Cost Center", "Project"])
-		
-		return options
+    # Merge and de-duplicate
+    all_doctypes = list(set(dim_names + extra))
+
+    # Filter by search text
+    filtered = [dt for dt in all_doctypes if txt.lower() in dt.lower()]
+    filtered.sort()
+
+    # Format for Frappe autocomplete [(value, label)]
+    return [(dt, dt) for dt in filtered[start:start + page_len]]
 
 

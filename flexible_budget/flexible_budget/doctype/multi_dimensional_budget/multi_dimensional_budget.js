@@ -2,27 +2,18 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Multi-Dimensional Budget", {
-	onload(frm) {
-        frm.call({
-            method: "flexible_budget.flexible_budget.doctype.multi_dimensional_budget.multi_dimensional_budget.get_acc_dimensions",  // Update with your app path
-            callback: function(response) {
-                if (response.message) {
-                    let options = response.message;  // The response is already a list
-                    
-                    // Loop through each row in the child table and update the Select field
-                    frm.fields_dict["accounting_dimensions"].grid.update_docfield_property(
-                        "accounting_dimension", "options", options.join("\n")
-                    );
-                    frm.refresh_field("accounting_dimensions");  // Refresh the child table
-                }
-            }
-        });
+onload(frm) {
+            frm.fields_dict["accounting_dimensions"].grid.get_field("accounting_dimension").get_query = function(doc, cdt, cdn) {
+                return {
+                    query: "flexible_budget.flexible_budget.doctype.multi_dimensional_budget.multi_dimensional_budget.custom_doctype_query"
+                };
+           };
     },
 
 validate: function(frm) {
         let seen = new Set();
         let unique_rows = [];
-
+        frm.set_df_property('frequency', 'read_only', 1);
         // Loop through the current child table rows
         frm.doc.accounting_dimensions.forEach(row => {
              // Create a unique key based on both fields
