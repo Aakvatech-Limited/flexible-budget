@@ -3,48 +3,119 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import getdate, add_days
+from frappe.utils import getdate, add_days, add_months
 from datetime import date
 
 
 class MultiDimensionalBudget(Document):
-    def validate(self):
-        if not self.company or not self.from_date or not self.to_date:
-            frappe.throw("Company, Planned Amount and Start Date must be set.")
-            return    
+    def before_insert(self):
         self.validate_date_overlap()
 
-        """Set allowed budget based on previous week's Weekly Target Revenue target percentage."""
 
-        # Fetch the Weekly Target Revenue document
-        targets = frappe.get_all(
+    def before_save(self):
+        self.validate_required_fields()
+        self.validate_date_overlap()
+        self.set_allowed_amount()
+    
+
+    def before_submit(self):
+        self.validate_allowed_amount()
+
+    
+    def validate_required_fields(self):
+        if not self.company:
+            frappe.throw("Company is required.")
+
+        if not self.start_date:
+            frappe.throw("Start Date is required.")
+
+        if not self.end_date:
+            frappe.throw("End Date is required.")
+
+        if not self.planned_amount:
+            frappe.throw("Planned Amount is required.")
+
+    
+    def set_allowed_amount(self):
+        """Set allowed budget based on previous Target Revenue target percentage."""
+
+        if (
+            not self.start_date
+            or not self.end_date
+            or not self.company
+        ):
+            return
+        
+        settings =  frappe.get_cached_value(
+            "Company Budget Control",
+            {"company": self.company},
+            ["frequency", "target_calculation_method", "fixed_target_revenue_amount"],
+            as_dict=True
+        )
+        if not settings:
+            frappe.throw("Company Budget Control settings not found for this company.")
+        
+        prev_target_start_date, prev_target_end_date = self.get_target_dates(settings)
+        if not prev_target_start_date or not prev_target_end_date:
+            return
+        
+        targets = frappe.db.get_all(
             "Target Revenue",
             filters={
                 "company": self.company,
-                "start_date": ["<=", self.from_date],
-                "end_date": ["<=", self.to_date],
+                "start_date": ["<=", prev_target_end_date],
+                "end_date": [">=", prev_target_start_date],
             },
-            fields=["name"]
+            fields=["name", "collected_amount"],
+            order_by="end_date desc",
+            limit=1
         )
 
-        if not targets:
-            frappe.throw("No Target Revenue found for the previous week.")
+        if not len(targets) == 0:
+            frappe.throw("No Target Revenue found for the previous period.")
+        
+        self.allowed_amount = targets[0].collected_amount
 
-        # Load the full Weekly Target Revenue document
-        target = frappe.get_doc("Target Revenue", targets[0]["name"])
 
-        # Use the target_percentage from the class
-        target_percentage = target.target_percentage or 0
+    def get_target_dates(self, settings):
+        if not settings.frequency:
+            return None, None
 
-        # Calculate and set allowed budget
-        self.allowed_amount = (self.planned_amount or 0) * ((target_percentage)/100)
+        prev_target_start_date = None
+        prev_target_end_date = None
 
-        # # Optionally, store a reference to the pulled document
-        # self.referenced_weekly_target = weekly_target.name  # optional link field
+        start_date = getdate(self.start_date)
 
-        # Log for debug
-        frappe.logger().info(f"Allowed Amount set to {self.allowed_amount} using {target_percentage}% from {target.name}")
+        if settings.frequency == "Weekly":
+            prev_target_start_date = add_days(start_date, -7)
+            prev_target_end_date = add_days(start_date, -1)
 
+        elif settings.frequency == "Monthly":
+            prev_target_start_date = add_months(start_date, -1)
+            prev_target_end_date = add_days(start_date, -1)
+
+        elif settings.frequency == "Quarterly":
+            prev_target_start_date = add_months(start_date, -3)
+            prev_target_end_date = add_days(start_date, -1)
+
+        elif settings.frequency in ["Half-yearly", "6 Months"]:
+            prev_target_start_date = add_months(start_date, -6)
+            prev_target_end_date = add_days(start_date, -1)
+
+        elif settings.frequency == "Yearly":
+            prev_target_start_date = add_months(start_date, -12)
+            prev_target_end_date = add_days(start_date, -1)
+
+        else:
+            frappe.throw("Invalid frequency. Please select a valid frequency.")
+
+        return prev_target_start_date, prev_target_end_date
+
+
+    def validate_allowed_amount(self):
+        if self.allowed_amount <= 0:
+            frappe.throw("Allowed Amount must be greater than zero.")
+    
 
     def validate_date_overlap(self):
 
@@ -81,6 +152,7 @@ class MultiDimensionalBudget(Document):
                     title=("Duplicate Budget Not Allowed")
                 )
 
+
 @frappe.whitelist()
 def get_acc_dimensions():
 		# Fetch all records from "Accounting Dimension"
@@ -93,6 +165,7 @@ def get_acc_dimensions():
 		options.extend(["Cost Center", "Project"])
 		
 		return options
+
 
 @frappe.whitelist()
 def calculate_budget_usage(docname):
