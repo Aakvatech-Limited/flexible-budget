@@ -74,6 +74,10 @@ class MultiDimensionalBudget(Document):
         if not len(targets) == 0:
             frappe.throw("No Target Revenue found for the previous period.")
         
+        collected_amount = targets[0].collected_amount
+        if self.planned_amount == collected_amount:
+            return
+        
         self.allowed_amount = targets[0].collected_amount
 
 
