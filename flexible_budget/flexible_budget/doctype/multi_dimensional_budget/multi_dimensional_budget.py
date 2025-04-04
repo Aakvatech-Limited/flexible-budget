@@ -2,9 +2,9 @@
 # For license information, please see license.txt
 
 import frappe
+# from datetime import date
 from frappe.model.document import Document
-from frappe.utils import getdate, add_days, add_months
-from datetime import date
+from frappe.utils import getdate, add_days, add_months, flt
 
 
 class MultiDimensionalBudget(Document):
@@ -157,6 +157,18 @@ class MultiDimensionalBudget(Document):
                 )
 
 
+    def calculate_budget_usage(self, expense_amount=0):
+        """Calculate unspent_budget and percentage_used for this budget period."""
+        if self.planned_amount == self.allowed_amount:
+            return
+        
+        self.percentage_used = 0
+        self.amount_used += expense_amount
+        self.unspent = self.allowed_amount - self.amount_used
+        if self.allowed_amount > 0 and self.amount_used > 0:
+            self.percentage_used = (self.amount_used / self.allowed_amount) * 100
+    
+
 @frappe.whitelist()
 def get_acc_dimensions():
 		# Fetch all records from "Accounting Dimension"
@@ -171,24 +183,3 @@ def get_acc_dimensions():
 		return options
 
 
-@frappe.whitelist()
-def calculate_budget_usage(docname):
-    """Calculate unspent_budget and percentage_used for this budget period."""
-    doc = frappe.get_doc("Multi-Dimensional Budget", docname)
-
-    total_expenses = 30  # Replace with actual logic
-
-    unspent = (doc.allowed_amount or 0) - total_expenses
-    percentage_used = 0
-    if (doc.allowed_amount or 0) > 0:
-        percentage_used = (total_expenses / float(doc.allowed_amount)) * 100
-
-    # Optionally update the doc (in memory, unless saved later)
-    doc.unspent_amount = unspent
-    doc.percentage_used = percentage_used
-
-    return {
-        "unspent_amount": unspent,
-        "spent_amount": total_expenses,
-        "percentage_used": percentage_used
-    }
