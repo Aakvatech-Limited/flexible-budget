@@ -4,6 +4,7 @@ from frappe.utils import flt, getdate, nowdate, add_days
 
 def update_allowed_amount():
     """Update allowed amount for Multi Dimensional Budget based on Target Revenue."""
+
     prev_day = add_days(nowdate(), -1)
 
     multi_budget_docs = frappe.get_all(
@@ -27,9 +28,15 @@ def update_revenue(revenue_doc=None):
     if revenue_doc:
         get_revenue_per_target_doc(revenue_doc)
     else:
+        prev_day = add_days(nowdate(), -1)
+
         target_revenues = frappe.db.get_all(
             "Target Revenue",
-            {"start_date": ["<=", nowdate()], "end_date": [">=", nowdate()]},
+            filters={
+                "docstatus": 1,
+                "start_date": ["<=", prev_day],
+                "end_date": [">=", prev_day]
+            },
             pluck="name"
         )
 

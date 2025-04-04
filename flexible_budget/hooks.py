@@ -145,7 +145,7 @@ app_license = "mit"
 
 scheduler_events = {
     "Cron": {
-        "30 23 * * *": [
+        "30 0 * * *": [
             "flexible_budget.flexible_budget.utils.update_revenue"
         ],
         "30 1 * * *": [
