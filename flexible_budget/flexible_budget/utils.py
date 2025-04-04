@@ -42,7 +42,7 @@ def update_revenue(revenue_doc=None):
 
         for revenue_id in target_revenues:
             revenue_doc = frappe.get_doc("Target Revenue", revenue_id)
-            gat_revenue_per_target_doc(revenue_doc)
+            get_revenue_per_target_doc(revenue_doc)
 
 
 def get_revenue_per_target_doc(doc):
