@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 import frappe
-# from datetime import date
 from frappe.model.document import Document
 from frappe.utils import getdate, add_days, add_months, flt
 
