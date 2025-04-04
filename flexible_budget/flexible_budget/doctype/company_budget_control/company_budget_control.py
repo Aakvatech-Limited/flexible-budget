@@ -18,7 +18,7 @@ class CompanyBudgetControl(Document):
     def validate_fixed_target_logic(self):
         if self.target_calculation_method == "Fixed Target":
             if not self.fixed_target_revenue_amount:
-                frappe.throw("You must set a <b>Fixed Target Revenue Amount</b> or provide values in the <b>Specifics</b> table.")
+                frappe.throw("You must set a <b>Fixed Target Revenue Amount</b>")
 
             if self.fixed_target_revenue_amount and self.fixed_target_revenue_amount < 0:
                 frappe.throw("<b>Fixed Target Revenue Amount</b> cannot be Negative.")

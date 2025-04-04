@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "naming_series:",
+ "autoname": "field:company",
  "creation": "2025-03-25 13:15:48.017682",
  "default_view": "List",
  "doctype": "DocType",
@@ -11,16 +11,13 @@
   "company",
   "multi_dimensional_budget_settings_section",
   "applicable_on_material_request",
-  "action_if_annual_budget_exceeded_on_mr",
-  "action_if_accumulated_monthly_budget_exceeded_on_mr",
+  "action_if_budget_exceeded_on_mr",
   "column_break_lswe",
   "applicable_on_purchase_order",
-  "action_if_annual_budget_exceeded_on_po",
-  "action_if_accumulated_monthly_budget_exceeded_on_po",
-  "section_break_xbyu",
+  "action_if_budget_exceeded_on_po",
+  "column_break_xhpd",
   "applicable_on_booking_actual_expenses",
-  "action_if_annual_budget_exceeded_on_actual",
-  "action_if_accumulated_monthly_budget_exceeded_on_actual",
+  "action_if_budget_exceeded_on_actual",
   "revenue_settings_section",
   "enable_auto_calculation",
   "frequency",
@@ -28,9 +25,7 @@
   "column_break_gljc",
   "target_calculation_method",
   "fixed_target_revenue_amount",
-  "group_income_account",
-  "section_break_ktyk",
-  "naming_series"
+  "group_income_account"
  ],
  "fields": [
   {
@@ -40,35 +35,25 @@
   {
    "fieldname": "company",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Company",
-   "options": "Company"
+   "options": "Company",
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "multi_dimensional_budget_settings_section",
    "fieldtype": "Section Break",
-   "label": "Multi Dimensional Budget Settings"
+   "label": "Budget Settings"
   },
   {
    "default": "0",
    "fieldname": "applicable_on_material_request",
    "fieldtype": "Check",
-   "label": "Applicable on Material Request"
-  },
-  {
-   "default": "Stop",
-   "depends_on": "eval:doc.applicable_on_material_request == 1",
-   "fieldname": "action_if_annual_budget_exceeded_on_mr",
-   "fieldtype": "Select",
-   "label": "Action if Annual Budget Exceeded on MR",
-   "options": "\nStop\nWarn\nIgnore"
-  },
-  {
-   "default": "Warn",
-   "depends_on": "eval:doc.applicable_on_material_request == 1",
-   "fieldname": "action_if_accumulated_monthly_budget_exceeded_on_mr",
-   "fieldtype": "Select",
-   "label": "Action if Accumulated Monthly Budget Exceeded on MR",
-   "options": "\nStop\nWarn\nIgnore"
+   "label": "Applicable on Material Request",
+   "search_index": 1
   },
   {
    "fieldname": "column_break_lswe",
@@ -78,49 +63,14 @@
    "default": "0",
    "fieldname": "applicable_on_purchase_order",
    "fieldtype": "Check",
-   "label": "Applicable on Purchase Order"
-  },
-  {
-   "default": "Stop",
-   "depends_on": "eval:doc.applicable_on_purchase_order == 1",
-   "fieldname": "action_if_annual_budget_exceeded_on_po",
-   "fieldtype": "Select",
-   "label": "Action if Annual Budget Exceeded on PO",
-   "options": "\nStop\nWarn\nIgnore"
-  },
-  {
-   "default": "Warn",
-   "depends_on": "eval:doc.applicable_on_purchase_order == 1",
-   "fieldname": "action_if_accumulated_monthly_budget_exceeded_on_po",
-   "fieldtype": "Select",
-   "label": "Action if Accumulated Monthly Budget Exceeded on PO",
-   "options": "\nStop\nWarn\nIgnore"
-  },
-  {
-   "fieldname": "section_break_xbyu",
-   "fieldtype": "Section Break"
+   "label": "Applicable on Purchase Order",
+   "search_index": 1
   },
   {
    "default": "0",
    "fieldname": "applicable_on_booking_actual_expenses",
    "fieldtype": "Check",
    "label": "Applicable on booking actual expenses"
-  },
-  {
-   "default": "Stop",
-   "depends_on": "eval:doc.applicable_on_booking_actual_expenses == 1",
-   "fieldname": "action_if_annual_budget_exceeded_on_actual",
-   "fieldtype": "Select",
-   "label": "Action if Annual Budget Exceeded on Actual",
-   "options": "\nStop\nWarn\nIgnore"
-  },
-  {
-   "default": "Warn",
-   "depends_on": "eval:doc.applicable_on_booking_actual_expenses == 1",
-   "fieldname": "action_if_accumulated_monthly_budget_exceeded_on_actual",
-   "fieldtype": "Select",
-   "label": "Action if Accumulated Monthly Budget Exceeded on Actual",
-   "options": "\nStop\nWarn\nIgnore"
   },
   {
    "default": "0",
@@ -133,7 +83,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Frequency",
-   "options": "\nWeekly\nMonthly\nQuarterly\nHalf-yearly\nYearly"
+   "options": "\nWeekly\nMonthly\nQuarterly\nHalf-Yearly\nYearly"
   },
   {
    "fieldname": "column_break_gljc",
@@ -149,18 +99,8 @@
    "depends_on": "eval:doc.target_calculation_method==\"Fixed Target\"\n",
    "fieldname": "fixed_target_revenue_amount",
    "fieldtype": "Currency",
-   "label": "Fixed Target Revenue Amount\t"
-  },
-  {
-   "fieldname": "section_break_ktyk",
-   "fieldtype": "Section Break"
-  },
-  {
-   "default": "FBS-",
-   "fieldname": "naming_series",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Naming Series"
+   "label": "Fixed Target Revenue Amount\t",
+   "mandatory_depends_on": "eval:doc.target_calculation_method==\"Fixed Target\"\n"
   },
   {
    "fieldname": "revenue_settings_section",
@@ -179,15 +119,44 @@
    "fieldtype": "Link",
    "label": "Group Income Account",
    "options": "Account"
+  },
+  {
+   "default": "Stop",
+   "depends_on": "eval:doc.applicable_on_material_request == 1",
+   "fieldname": "action_if_budget_exceeded_on_mr",
+   "fieldtype": "Select",
+   "label": "Action if Budget Exceeded on MR",
+   "options": "\nStop\nWarn\nIgnore",
+   "search_index": 1
+  },
+  {
+   "default": "Stop",
+   "depends_on": "eval:doc.applicable_on_purchase_order == 1",
+   "fieldname": "action_if_budget_exceeded_on_po",
+   "fieldtype": "Select",
+   "label": "Action if Budget Exceeded on PO",
+   "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "fieldname": "column_break_xhpd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Stop",
+   "depends_on": "eval:doc.applicable_on_booking_actual_expenses == 1",
+   "fieldname": "action_if_budget_exceeded_on_actual",
+   "fieldtype": "Select",
+   "label": "Action if Budget Exceeded on Actual",
+   "options": "\nStop\nWarn\nIgnore"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-03 18:29:14.466792",
+ "modified": "2025-04-04 11:06:40.851199",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Company Budget Control",
- "naming_rule": "By \"Naming Series\" field",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
