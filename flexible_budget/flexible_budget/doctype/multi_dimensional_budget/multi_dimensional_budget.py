@@ -79,6 +79,7 @@ class MultiDimensionalBudget(Document):
             return
         
         self.allowed_amount = targets[0].collected_amount
+        self.calculate_budget_usage()
 
 
     def get_target_dates(self, settings):
@@ -159,6 +160,7 @@ class MultiDimensionalBudget(Document):
 
     def calculate_budget_usage(self, expense_amount=0):
         """Calculate unspent_budget and percentage_used for this budget period."""
+
         if self.planned_amount == self.allowed_amount:
             return
         
@@ -171,13 +173,10 @@ class MultiDimensionalBudget(Document):
 
 @frappe.whitelist()
 def get_acc_dimensions():
-		# Fetch all records from "Accounting Dimension"
 		documents = frappe.get_all("Accounting Dimension", fields=["name"])
 
-		# Extract names into a list
 		options = [doc["name"] for doc in documents]
 
-		#Append Cost Center and Project to the list
 		options.extend(["Cost Center", "Project"])
 		
 		return options
