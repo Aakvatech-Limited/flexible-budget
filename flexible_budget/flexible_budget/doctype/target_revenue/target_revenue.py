@@ -2,12 +2,13 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.model.document import Document
-from frappe.utils import add_days, add_months, getdate
 from datetime import timedelta
+from frappe.model.document import Document
+from frappe.utils.background_jobs import enqueue
+from frappe.utils import add_days, add_months, getdate
+from flexible_budget.flexible_budget.utils import update_revenue
 
 class TargetRevenue(Document):
-
     def validate(self):
         if self.is_new():
             self.check_existing_target_revenue()
@@ -16,37 +17,19 @@ class TargetRevenue(Document):
         self.set_target_amount_from_settings()
         self.calculate_target_percentage()
 
+
     def before_submit(self):
-        # Calculate collected_amount from existing Sales Invoices
-        self.update_collected_amount_from_historical_invoices()
-
-    def update_collected_amount_from_historical_invoices(self):
-        # Query all Sales Invoices within the Target Revenue's date range
-        sales_invoices = frappe.db.sql("""
-            SELECT name, grand_total, is_return
-            FROM `tabSales Invoice`
-            WHERE 
-                company = %s 
-                AND posting_date BETWEEN %s AND %s 
-                AND docstatus = 1
-        """, (self.company, self.start_date, self.end_date), as_dict=True)
-
-        # Calculate net collected amount (including returns)
-        collected_amount = 0
-        for invoice in sales_invoices:
-            if invoice.is_return:
-                collected_amount -= abs(invoice.grand_total)  # Subtract returns
-            else:
-                collected_amount += invoice.grand_total  # Add normal invoices
-
-        # Update collected_amount and recalculate target_percentage
-        self.collected_amount = collected_amount
-        self.calculate_target_percentage()
-        self.save(ignore_permissions=True)
-        frappe.db.commit()
+        pass
+        
+    
+    def on_submit(self):
+        enqueue(
+            method=update_revenue,
+            revenue_doc=self
+        )
+        
 
     def check_existing_target_revenue(self):
-        # Check if there is an active Target Revenue for the same company
         existing_target = frappe.db.exists(
             "Target Revenue",
             {
@@ -56,6 +39,7 @@ class TargetRevenue(Document):
         )
         if existing_target:
             frappe.throw(f"A Target Revenue already exists for the company <b>'{self.company}'</b> that overlaps with the selected period.")
+
 
     def calculate_target_percentage(self):
         settings = frappe.db.get_value(
@@ -67,12 +51,12 @@ class TargetRevenue(Document):
         if settings and settings.get("enable_auto_calculation"):
             method = (settings.get("target_calculation_method") or "").strip().lower()
 
-            # If revenue-based, target_amount should match collected_amount
             if method == "revenue-based target":
                 self.target_amount = self.collected_amount or 0
 
             if self.target_amount:
                 self.target_percentage = ((self.collected_amount or 0) / (self.target_amount)) * 100
+
 
     def set_end_date_from_frequency(self):
         if self.start_date and not self.end_date:
@@ -95,6 +79,7 @@ class TargetRevenue(Document):
                 self.end_date = add_months(start_date, 6) - timedelta(days=1)
             elif frequency == "yearly":
                 self.end_date = add_months(start_date, 12) - timedelta(days=1)
+
 
     def set_target_amount_from_settings(self):
         settings = frappe.db.get_value(

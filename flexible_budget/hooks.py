@@ -136,14 +136,6 @@ app_license = "mit"
 # Document Events
 # ---------------
 # Hook on document methods and events
-
-doc_events = {
-    "Sales Invoice": {
-        "on_submit": "flexible_budget.flexible_budget.utils.update_target_revenue_from_invoice"
-    }
-}
-
-
 # doc_events = {
     
 # }
@@ -151,23 +143,13 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"flexible_budget.tasks.all"
-# 	],
-# 	"daily": [
-# 		"flexible_budget.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"flexible_budget.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"flexible_budget.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"flexible_budget.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+    "Cron": {
+        "30 23 * * *": [
+            "flexible_budget.flexible_budget.utils.update_revenue"
+        ]
+    }
+}
 
 # Testing
 # -------
