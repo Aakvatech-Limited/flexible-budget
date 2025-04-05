@@ -224,6 +224,10 @@ def validate_budget_records(args, budget_records, expense_amount):
                 budget,
                 expense_amount,
             )
+        
+        budget.calculate_budget_usage(args.amount)
+        budget.db_update()
+        budget.reload()
 
 
 def get_actions(args, budget):
@@ -344,7 +348,7 @@ def get_ordered_amount(args, budget):
     data = frappe.db.sql(
         f""" select ifnull(sum(child.amount - child.billed_amt), 0) as amount
         from `tabPurchase Order Item` child, `tabPurchase Order` parent where
-        parent.name = child.parent and child.item_code = %s and parent.docstatus = 0 and child.amount > child.billed_amt
+        parent.name = child.parent and child.item_code = %s and parent.docstatus = 1 and child.amount > child.billed_amt
         and parent.status != 'Closed' and {condition}""",
         (item_code,),
         as_list=1
