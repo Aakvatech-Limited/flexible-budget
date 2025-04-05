@@ -136,9 +136,14 @@ app_license = "mit"
 # Document Events
 # ---------------
 # Hook on document methods and events
-# doc_events = {
-    
-# }
+doc_events = {
+    "Purchase Order": {
+        "before_submit": "flexible_budget.flexible_budget.utils.validate_budget"
+    },
+    "Material Request": {
+        "before_submit": "flexible_budget.flexible_budget.utils.validate_budget"
+    },
+}
 
 # Scheduled Tasks
 # ---------------
