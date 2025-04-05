@@ -8,8 +8,23 @@ from frappe.utils import getdate, add_days, add_months, flt
 
 class MultiDimensionalBudget(Document):
     def before_insert(self):
+        settings = frappe.db.get_value(
+            "Company Budget Control",
+            {"company": self.company},
+            [
+                "frequency",
+                "applicable_on_material_request",
+                "action_if_budget_exceeded_on_mr",
+                "applicable_on_purchase_order",
+                "action_if_budget_exceeded_on_po",
+                "applicable_on_booking_actual_expenses",
+                "action_if_budget_exceeded_on_actual"
+            ],
+            as_dict=True
+        )
         self.validate_date_overlap()
-        self.set_end_date_from_frequency()
+        self.set_end_date_from_frequency(settings)
+        self.set_budget_actions_from_settings(settings)
 
 
     def before_save(self):
@@ -63,6 +78,30 @@ class MultiDimensionalBudget(Document):
                 self.end_date = add_months(start_date, 12) - timedelta(days=1)
         
         return self.end_date
+    
+    def set_budget_actions_from_settings(self, settings=None):
+        if not settings:
+            settings = frappe.db.get_value(
+                "Company Budget Control",
+                {"company": self.company},
+                [
+                    "applicable_on_material_request",
+                    "action_if_budget_exceeded_on_mr",
+                    "applicable_on_purchase_order",
+                    "action_if_budget_exceeded_on_po",
+                    "applicable_on_booking_actual_expenses",
+                    "action_if_budget_exceeded_on_actual"
+                ],
+                as_dict=True
+            )
+        
+        if settings:
+            self.applicable_on_material_request = settings.get("applicable_on_material_request")
+            self.action_if_budget_exceeded_on_mr = settings.get("action_if_budget_exceeded_on_mr")
+            self.applicable_on_purchase_order = settings.get("applicable_on_purchase_order")
+            self.action_if_budget_exceeded_on_po = settings.get("action_if_budget_exceeded_on_po")
+            self.applicable_on_booking_actual_expenses = settings.get("applicable_on_booking_actual_expenses")
+            self.action_if_budget_exceeded = settings.get("action_if_budget_exceeded_on_actual")
 
     
     def set_allowed_amount(self, caller=None):
