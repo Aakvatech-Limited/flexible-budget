@@ -9,6 +9,7 @@ from frappe.utils import getdate, add_days, add_months, flt
 class MultiDimensionalBudget(Document):
     def before_insert(self):
         self.validate_date_overlap()
+        self.set_end_date_from_frequency()
 
 
     def before_save(self):
@@ -18,7 +19,7 @@ class MultiDimensionalBudget(Document):
     
 
     def before_submit(self):
-        self.validate_allowed_amount()
+        self.set_allowed_amount(caller="submit")
 
     
     def validate_required_fields(self):
@@ -33,9 +34,38 @@ class MultiDimensionalBudget(Document):
 
         if not self.planned_amount:
             frappe.throw("Planned Amount is required.")
+    
+
+    @frappe.whitelist()
+    def set_end_date_from_frequency(self, settings=None):
+        if not settings:
+            settings = frappe.db.get_value(
+                "Company Budget Control",
+                {"company": self.company},
+                ["frequency"],
+                as_dict=True
+            )
+        
+        if self.start_date:
+            start_date = getdate(self.start_date)
+            
+            frequency = (settings.get("frequency") or "").strip().lower() if settings else ""
+
+            if frequency == "weekly":
+                self.end_date = add_days(start_date, 6)
+            elif frequency == "monthly":
+                self.end_date = add_months(start_date, 1) - timedelta(days=1)
+            elif frequency == "quarterly":
+                self.end_date = add_months(start_date, 3) - timedelta(days=1)
+            elif frequency == "half-yearly" or frequency == "6 months":
+                self.end_date = add_months(start_date, 6) - timedelta(days=1)
+            elif frequency == "yearly":
+                self.end_date = add_months(start_date, 12) - timedelta(days=1)
+        
+        return self.end_date
 
     
-    def set_allowed_amount(self):
+    def set_allowed_amount(self, caller=None):
         """Set allowed budget based on previous Target Revenue target percentage."""
 
         if (
@@ -70,8 +100,23 @@ class MultiDimensionalBudget(Document):
             limit=1
         )
 
-        if not len(targets) == 0:
-            frappe.throw("No Target Revenue found for the previous period.")
+        if len(targets) == 0:
+            if not caller:
+                return
+            
+            frequency_str = ""
+            if settings.frequency == "Weekly":
+                frequency_str = "Week"
+            elif settings.frequency == "Monthly":
+                frequency_str = "Month"
+            elif settings.frequency == "Quarterly":
+                frequency_str = "Quarter"
+            elif settings.frequency in ["Half-yearly", "6 Months"]:
+                frequency_str = "Half Year"
+            elif settings.frequency == "Yearly":
+                frequency_str = "Year"
+            
+            frappe.throw(f"No Target Revenue found for the previous <b>{frequency_str}</b>.")
         
         collected_amount = targets[0].collected_amount
         if self.planned_amount == collected_amount:
@@ -114,29 +159,23 @@ class MultiDimensionalBudget(Document):
             frappe.throw("Invalid frequency. Please select a valid frequency.")
 
         return prev_target_start_date, prev_target_end_date
-
-
-    def validate_allowed_amount(self):
-        if self.allowed_amount <= 0:
-            frappe.throw("Allowed Amount must be greater than zero.")
     
 
     def validate_date_overlap(self):
 
-        existing_budgets = frappe.get_all(
+        existing_budgets = frappe.db.get_all(
             "Multi-Dimensional Budget",
             filters={
                 "company": self.company,
-                "name": ["!=", self.name],  # Exclude current doc in case of edit
-                "from_date": ["<=", self.to_date],
-                "to_date": [">=", self.from_date]
+                "name": ["!=", self.name],
+                "start_date": ["<=", self.end_date],
+                "end_date": [">=", self.start_date]
             },
             fields=["name"]
         )
 
-        if not existing_budgets:
+        if len(existing_budgets) == 0:
             return
-
 
         for budget in existing_budgets:
             other = frappe.get_doc("Multi-Dimensional Budget", budget.name)

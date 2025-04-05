@@ -53,5 +53,15 @@ validate: function(frm) {
         // if (removed > 0) {
         //     frappe.msgprint(${removed} duplicate Accounting Dimension(s) removed.);
         // }    
+    },
+    start_date: (frm) => {
+        if (frm.doc.start_date) {
+            frm.call("set_end_date_from_frequency", {})
+                .then((r) => {
+                    if (r.message) {
+                        frm.refresh_field("end_date");
+                    }
+                });
+        }
     }
 })

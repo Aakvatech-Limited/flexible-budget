@@ -63,7 +63,7 @@ class TargetRevenue(Document):
 
 
     @frappe.whitelist()
-    def set_end_date_from_frequency(self, settings=None, caller=None):
+    def set_end_date_from_frequency(self, settings=None):
         if not settings:
             settings = frappe.db.get_value(
                 "Company Budget Control",
