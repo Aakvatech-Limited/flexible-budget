@@ -250,12 +250,10 @@ class MultiDimensionalBudget(Document):
 
 @frappe.whitelist()
 def get_acc_dimensions():
-		documents = frappe.get_all("Accounting Dimension", fields=["name"])
+    documents = frappe.get_all("Accounting Dimension", fields=["name"])
 
-		options = [doc["name"] for doc in documents]
+    options = [doc["name"] for doc in documents]
 
-		options.extend(["Cost Center", "Project"])
-		
-		return options
-
-
+    options.extend(["Cost Center", "Project"])
+    
+    return options

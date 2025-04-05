@@ -3,29 +3,14 @@
 
 frappe.ui.form.on("Multi-Dimensional Budget", {
 	onload(frm) {
-        frm.call({
-            method: "flexible_budget.flexible_budget.doctype.multi_dimensional_budget.multi_dimensional_budget.get_acc_dimensions",  // Update with your app path
-            callback: function(response) {
-                if (response.message) {
-                    let options = response.message;  // The response is already a list
-                    
-                    // Loop through each row in the child table and update the Select field
-                    frm.fields_dict["accounting_dimensions"].grid.update_docfield_property(
-                        "accounting_dimension", "options", options.join("\n")
-                    );
-                    frm.refresh_field("accounting_dimensions");  // Refresh the child table
-                }
-            }
-        });
+        set_dimension_options(frm);
     },
 
-validate: function(frm) {
+    validate: function(frm) {
         let seen = new Set();
         let unique_rows = [];
 
-        // Loop through the current child table rows
         frm.doc.accounting_dimensions.forEach(row => {
-             // Create a unique key based on both fields
         const key = `${row.accounting_dimension}`;
     
             if (!seen.has(key)) {
@@ -37,7 +22,6 @@ validate: function(frm) {
             }
         });
 
-        // let removed = frm.doc.accounting_dimensions.length - unique_rows.length;
 
         // Replace child table with unique rows
         frm.doc.accounting_dimensions = [];
@@ -49,10 +33,6 @@ validate: function(frm) {
         });
 
         frm.refresh_field('accounting_dimensions');
-
-        // if (removed > 0) {
-        //     frappe.msgprint(${removed} duplicate Accounting Dimension(s) removed.);
-        // }    
     },
     start_date: (frm) => {
         if (frm.doc.start_date) {
@@ -64,4 +44,29 @@ validate: function(frm) {
                 });
         }
     }
-})
+});
+
+frappe.ui.form.on("Multi-Dimensional Budget Detail", {
+    accounting_dimensions_add(frm, cdt, cdn) {
+        set_dimension_options(frm);
+    },
+    before_accounting_dimension_remove(frm, cdt, cdn) {
+        set_dimension_options(frm);
+    }
+});
+
+let set_dimension_options = (frm) => {
+    frm.call({
+        method: "flexible_budget.flexible_budget.doctype.multi_dimensional_budget.multi_dimensional_budget.get_acc_dimensions",
+        callback: function(response) {
+            if (response.message) {
+                let options = response.message; 
+                
+                frm.fields_dict["accounting_dimensions"].grid.update_docfield_property(
+                    "accounting_dimension", "options", options.join("\n")
+                );
+                frm.refresh_field("accounting_dimensions");
+            }
+        }
+    });
+}
