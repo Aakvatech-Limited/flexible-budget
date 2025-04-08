@@ -49,10 +49,10 @@ class TargetRevenue(Document):
         settings = frappe.db.get_value(
             "Company Budget Control",
             {"company": self.company},
-            ["enable_auto_calculation", "target_calculation_method"],
+            ["target_calculation_method"],
             as_dict=True
         )
-        if settings and settings.get("enable_auto_calculation"):
+        if settings:
             method = (settings.get("target_calculation_method") or "").strip().lower()
 
             if method == "revenue-based target":

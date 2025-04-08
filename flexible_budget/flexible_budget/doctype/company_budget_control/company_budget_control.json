@@ -9,6 +9,8 @@
  "field_order": [
   "company_section",
   "company",
+  "column_break_ldmt",
+  "frequency",
   "multi_dimensional_budget_settings_section",
   "applicable_on_material_request",
   "action_if_budget_exceeded_on_mr",
@@ -19,13 +21,11 @@
   "applicable_on_booking_actual_expenses",
   "action_if_budget_exceeded_on_actual",
   "revenue_settings_section",
-  "enable_auto_calculation",
-  "frequency",
-  "action_if_no_target_revenue",
-  "column_break_gljc",
   "target_calculation_method",
   "fixed_target_revenue_amount",
-  "group_income_account"
+  "column_break_gljc",
+  "group_income_account",
+  "action_if_no_target_revenue"
  ],
  "fields": [
   {
@@ -73,12 +73,6 @@
    "label": "Applicable on booking actual expenses"
   },
   {
-   "default": "0",
-   "fieldname": "enable_auto_calculation",
-   "fieldtype": "Check",
-   "label": "Enable Auto Calculation\t"
-  },
-  {
    "fieldname": "frequency",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -93,7 +87,8 @@
    "fieldname": "target_calculation_method",
    "fieldtype": "Select",
    "label": "Target Calculation Method\t",
-   "options": "\nFixed Target\nRevenue-Based Target"
+   "options": "\nFixed Target\nRevenue-Based Target",
+   "reqd": 1
   },
   {
    "depends_on": "eval:doc.target_calculation_method==\"Fixed Target\"\n",
@@ -148,11 +143,15 @@
    "fieldtype": "Select",
    "label": "Action if Budget Exceeded on Actual",
    "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "fieldname": "column_break_ldmt",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-04 11:06:40.851199",
+ "modified": "2025-04-08 11:54:51.179774",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Company Budget Control",
