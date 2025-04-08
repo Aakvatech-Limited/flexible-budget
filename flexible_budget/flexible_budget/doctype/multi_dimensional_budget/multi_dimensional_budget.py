@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import getdate, add_days, add_months, flt
+from datetime import timedelta
 
 
 class MultiDimensionalBudget(Document):
@@ -158,8 +159,8 @@ class MultiDimensionalBudget(Document):
             frappe.throw(f"No Target Revenue found for the previous <b>{frequency_str}</b>.")
         
         collected_amount = targets[0].collected_amount
-        if self.planned_amount == collected_amount:
-            return
+        # if self.planned_amount == collected_amount:
+        #     return
         
         self.allowed_amount = targets[0].collected_amount
         self.calculate_budget_usage()
