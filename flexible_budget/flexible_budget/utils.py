@@ -6,12 +6,12 @@ from erpnext.accounts.doctype.budget.budget import get_item_details, BudgetError
 
 
 def update_allowed_amount():
-    """Update allowed amount for Multi Dimensional Budget based on Target Revenue."""
+    """Update allowed amount for Multi-Dimensional Budget based on Target Revenue."""
 
     prev_day = add_days(nowdate(), -1)
 
     multi_budget_docs = frappe.get_all(
-        "Multi Dimensional Budget",
+        "Multi-Dimensional Budget",
         filters={
             "docstatus": 1,
             "start_date": ["<=", prev_day],
@@ -21,7 +21,7 @@ def update_allowed_amount():
     )
 
     for budget_id in multi_budget_docs:
-        budget_doc = frappe.get_doc("Multi Dimensional Budget", budget_id)
+        budget_doc = frappe.get_doc("Multi-Dimensional Budget", budget_id)
         budget_doc.set_allowed_amount()
         budget_doc.db_update()
         budget_doc.reload()
@@ -31,7 +31,7 @@ def update_revenue(revenue_doc=None):
     if revenue_doc:
         get_revenue_per_target_doc(revenue_doc)
     else:
-        prev_day = add_days(nowdate(), -1)
+        prev_day = add_days(nowdate(), -7)
 
         target_revenues = frappe.db.get_all(
             "Target Revenue",
@@ -100,7 +100,7 @@ def get_revenue_per_target_doc(doc):
             frappe.qb.from_(acb)
             .select(acb.account, acb.debit, acb.credit)
             .where(
-                (acb.company == company) &
+                (acb.company == doc.company) &
                 (acb.account.isin(accounts)) &
                 (acb.period_closing_voucher == pcv[0].name)
             )
@@ -203,8 +203,10 @@ def validate_expense_against_budget(args, expense_amount=0):
         else:
             valid_budget = budget_doc
             break
-
-
+    
+    if not valid_budget:
+        return
+    
     budget_records = [valid_budget]
     if budget_records:
         validate_budget_records(args, budget_records, expense_amount)
@@ -231,15 +233,15 @@ def validate_budget_records(args, budget_records, expense_amount):
 
 
 def get_actions(args, budget):
-  action = budget.action_if_budget_exceeded
+    action = budget.action_if_budget_exceeded
 
-  if args.get("doctype") == "Material Request" and budget.applicable_on_material_request:
-    action = budget.action_if_budget_exceeded_on_mr
+    if args.get("doctype") == "Material Request" and budget.applicable_on_material_request:
+        action = budget.action_if_budget_exceeded_on_mr
 
-  elif args.get("doctype") == "Purchase Order" and budget.applicable_on_purchase_order:
-    action = budget.action_if_budget_exceeded_on_po
+    elif args.get("doctype") == "Purchase Order" and budget.applicable_on_purchase_order:
+        action = budget.action_if_budget_exceeded_on_po
 
-  return action
+    return action
 
 
 def compare_expense_with_budget(
@@ -436,7 +438,7 @@ def get_expense_breakup(args, currency, budget):
                     "status": [["!=", "Stopped"]],
                     "docstatus": 1,
                     "material_request_type": "Purchase",
-                    "schedule_date": ["between", [budget.start_date, budget.end_date]],
+                    "schedule_date": ["between", [str(budget.start_date), str(budget.end_date)]],
                     "item_code": args.item_code,
                     "per_ordered": [["<", 100]],
                 }),
@@ -456,7 +458,7 @@ def get_expense_breakup(args, currency, budget):
                 filters=common_filters.copy().update({
                     "status": [["!=", "Closed"]],
                     "docstatus": 1,
-                    "transaction_date": ["between", [budget.start_date, budget.end_date]],
+                    "transaction_date": ["between", [str(budget.start_date), str(budget.end_date)]],
                     "item_code": args.item_code,
                     "per_billed": [["<", 100]],
                 }),
