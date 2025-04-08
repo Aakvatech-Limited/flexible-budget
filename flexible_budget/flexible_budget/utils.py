@@ -31,7 +31,7 @@ def update_revenue(revenue_doc=None):
     if revenue_doc:
         get_revenue_per_target_doc(revenue_doc)
     else:
-        prev_day = add_days(nowdate(), -7)
+        prev_day = add_days(nowdate(), -1)
 
         target_revenues = frappe.db.get_all(
             "Target Revenue",
