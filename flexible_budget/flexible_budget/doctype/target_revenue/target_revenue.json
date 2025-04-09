@@ -11,7 +11,7 @@
   "end_date",
   "column_break_mnfm",
   "target_amount",
-  "collected_amount",
+  "earned_amount",
   "target_percentage",
   "section_break_gjms",
   "naming_series",
@@ -28,14 +28,6 @@
    "fieldname": "target_amount",
    "fieldtype": "Currency",
    "label": "Target Amount",
-   "read_only": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "collected_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Collected Amount",
    "read_only": 1
   },
   {
@@ -83,12 +75,20 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "earned_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Earned Amount",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-02 14:47:47.267563",
+ "modified": "2025-04-09 06:55:25.523945",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Target Revenue",

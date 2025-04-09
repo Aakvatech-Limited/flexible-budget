@@ -118,7 +118,7 @@ def get_revenue_per_target_doc(doc):
 
     net_revenue = total_credit - total_debit
 
-    doc.collected_amount += abs(net_revenue)
+    doc.earned_amount += abs(net_revenue)
     doc.calculate_target_percentage()
 
     doc.db_update()

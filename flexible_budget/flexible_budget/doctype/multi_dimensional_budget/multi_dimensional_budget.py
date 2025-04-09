@@ -135,7 +135,7 @@ class MultiDimensionalBudget(Document):
                 "start_date": ["<=", prev_target_end_date],
                 "end_date": [">=", prev_target_start_date],
             },
-            fields=["name", "collected_amount"],
+            fields=["name", "earned_amount"],
             order_by="end_date desc",
             limit=1
         )
@@ -158,11 +158,11 @@ class MultiDimensionalBudget(Document):
             
             frappe.throw(f"No Target Revenue found for the previous <b>{frequency_str}</b>.")
         
-        collected_amount = targets[0].collected_amount
-        # if self.planned_amount == collected_amount:
+        earned_amount = targets[0].earned_amount
+        # if self.planned_amount == earned_amount:
         #     return
         
-        self.allowed_amount = targets[0].collected_amount
+        self.allowed_amount = earned_amount
         self.calculate_budget_usage()
 
 

@@ -56,10 +56,10 @@ class TargetRevenue(Document):
             method = (settings.get("target_calculation_method") or "").strip().lower()
 
             if method == "revenue-based target":
-                self.target_amount = self.collected_amount or 0
+                self.target_amount = self.earned_amount or 0
 
             if self.target_amount:
-                self.target_percentage = ((self.collected_amount or 0) / (self.target_amount)) * 100
+                self.target_percentage = ((self.earned_amount or 0) / (self.target_amount)) * 100
 
 
     @frappe.whitelist()
