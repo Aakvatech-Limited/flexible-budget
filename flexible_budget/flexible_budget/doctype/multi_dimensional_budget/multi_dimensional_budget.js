@@ -76,13 +76,6 @@ let set_dimension_options = (frm) => {
 }
 
 let set_queries = (frm) => {
-    frm.set_query('accounting_dimension_name', 'accounting_dimensions', () => {
-        return {
-            filters: {
-                company: frm.doc.company
-            }
-        }
-    });
     frm.set_query("account", "accounts", () => {
         return {
             filters: {
