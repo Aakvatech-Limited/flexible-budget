@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate, add_days, add_months, flt
 from datetime import timedelta
@@ -25,6 +26,7 @@ class MultiDimensionalBudget(Document):
         )
         self.validate_date_overlap()
         self.validate_duplicate_accounts()
+        self.validate_accounts()
         self.set_end_date_from_frequency(settings)
         self.set_budget_actions_from_settings(settings)
 
@@ -32,6 +34,8 @@ class MultiDimensionalBudget(Document):
     def before_save(self):
         self.validate_required_fields()
         self.validate_date_overlap()
+        self.validate_duplicate_accounts()
+        self.validate_accounts()
         self.set_allowed_amount()
     
 
@@ -247,7 +251,7 @@ class MultiDimensionalBudget(Document):
         if self.allowed_amount > 0 and self.amount_used > 0:
             self.percentage_used = (self.amount_used / self.allowed_amount) * 100
     
-    
+
     def validate_duplicate_accounts(self):
         """Validate if the same account is selected multiple times."""
 
@@ -257,6 +261,27 @@ class MultiDimensionalBudget(Document):
                 accounts.append(row.account)
             else:
                 frappe.throw(f"Duplicate account found: {row.account}")
+    
+    
+    def validate_accounts(self):
+        for d in self.get("accounts"):
+            if d.account:
+                account_details = frappe.get_cached_value(
+					"Account", d.account, ["is_group", "company", "report_type"], as_dict=1
+				)
+                if account_details.is_group:
+                    frappe.throw(_(f"Budget cannot be assigned against Group Account {d.account}"))
+
+                elif account_details.company != self.company:
+                    frappe.throw(
+						_(f"Account {d.account} does not belongs to company {self.company}")
+					)
+                elif account_details.report_type != "Profit and Loss":
+                    frappe.throw(
+						_(
+							f"Budget cannot be assigned against {d.account}, as it's not an Income or Expense account"
+						)
+					)
 
 @frappe.whitelist()
 def get_acc_dimensions():
