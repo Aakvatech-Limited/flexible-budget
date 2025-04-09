@@ -25,7 +25,7 @@ class MultiDimensionalBudget(Document):
             as_dict=True
         )
         self.validate_date_overlap()
-        self.validate_duplicate_accounts()
+        self.validate_accounting_dimensions()
         self.validate_accounts()
         self.set_end_date_from_frequency(settings)
         self.set_budget_actions_from_settings(settings)
@@ -34,7 +34,6 @@ class MultiDimensionalBudget(Document):
     def before_save(self):
         self.validate_required_fields()
         self.validate_date_overlap()
-        self.validate_duplicate_accounts()
         self.validate_accounts()
         self.set_allowed_amount()
     
@@ -251,19 +250,9 @@ class MultiDimensionalBudget(Document):
         if self.allowed_amount > 0 and self.amount_used > 0:
             self.percentage_used = (self.amount_used / self.allowed_amount) * 100
     
-
-    def validate_duplicate_accounts(self):
-        """Validate if the same account is selected multiple times."""
-
-        accounts = []
-        for row in self.accounts:
-            if row.account not in accounts:
-                accounts.append(row.account)
-            else:
-                frappe.throw(f"Duplicate account found: {row.account}")
-    
     
     def validate_accounts(self):
+        account_list = []
         for d in self.get("accounts"):
             if d.account:
                 account_details = frappe.get_cached_value(
@@ -282,6 +271,35 @@ class MultiDimensionalBudget(Document):
 							f"Budget cannot be assigned against {d.account}, as it's not an Income or Expense account"
 						)
 					)
+                
+                if d.account in account_list:
+                    frappe.throw(_("Account {0} has been entered multiple times").format(d.account))
+                else:
+                    account_list.append(d.account)
+    
+    
+    def validate_accounting_dimensions(self):
+        """Validate if the same accounting dimension is selected multiple times and if it belong to the same company."""
+
+        dimensions = []
+        for row in self.accounting_dimensions:
+            if row.accounting_dimension not in dimensions:
+                dimensions.append(row.accounting_dimension)
+            else:
+                frappe.throw(f"Duplicate accounting dimension found: {row.accounting_dimension}")
+            
+            if frappe.get_meta(row.accounting_dimension).get_field("company"):
+                if row.accounting_dimension_name:
+                    company = frappe.get_cached_value(
+                        row.accounting_dimension,
+                        row.accounting_dimension_name,
+                        "company"
+                    )
+                    if company != self.company:
+                        frappe.throw(
+                            _(f"Accounting Dimension {row.accounting_dimension_name} does not belong to company {self.company}")
+                        )
+
 
 @frappe.whitelist()
 def get_acc_dimensions():
