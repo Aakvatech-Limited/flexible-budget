@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-09 07:16:03.561231",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "account",
+  "budget_amount",
+  "column_break_xefu",
+  "allowed_amount",
+  "percent_used",
+  "column_break_wpbv",
+  "amount_used",
+  "unused_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Account",
+   "options": "Account",
+   "search_index": 1
+  },
+  {
+   "fieldname": "budget_amount",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Budget Amount",
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_xefu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "allowed_amount",
+   "fieldtype": "Float",
+   "label": "Allowed Amount",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "percent_used",
+   "fieldtype": "Percent",
+   "label": "Percent Used",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_wpbv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount_used",
+   "fieldtype": "Float",
+   "label": "Amount Used",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "unused_amount",
+   "fieldtype": "Float",
+   "label": "Unused Amount",
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-09 07:25:40.350329",
+ "modified_by": "Administrator",
+ "module": "Flexible Budget",
+ "name": "Multi-Dimensional Budget Account",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
