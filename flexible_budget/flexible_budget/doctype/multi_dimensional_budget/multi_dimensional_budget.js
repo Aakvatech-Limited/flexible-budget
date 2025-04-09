@@ -2,7 +2,11 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Multi-Dimensional Budget", {
-	onload(frm) {
+    refresh: (frm) => {
+        set_queries(frm);
+    },
+	onload: (frm) =>{
+        set_queries(frm);
         set_dimension_options(frm);
     },
 
@@ -68,5 +72,24 @@ let set_dimension_options = (frm) => {
                 frm.refresh_field("accounting_dimensions");
             }
         }
+    });
+}
+
+let set_queries = (frm) => {
+    frm.set_query('accounting_dimension_name', 'accounting_dimensions', () => {
+        return {
+            filters: {
+                company: frm.doc.company
+            }
+        }
+    });
+    frm.set_query("account", "accounts", () => {
+        return {
+            filters: {
+                company: frm.doc.company,
+                report_type: "Profit and Loss",
+                is_group: 0,
+            }
+        };
     });
 }
