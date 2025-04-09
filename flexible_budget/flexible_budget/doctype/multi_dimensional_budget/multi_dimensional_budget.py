@@ -24,6 +24,7 @@ class MultiDimensionalBudget(Document):
             as_dict=True
         )
         self.validate_date_overlap()
+        self.validate_duplicate_accounts()
         self.set_end_date_from_frequency(settings)
         self.set_budget_actions_from_settings(settings)
 
@@ -48,9 +49,6 @@ class MultiDimensionalBudget(Document):
         if not self.end_date:
             frappe.throw("End Date is required.")
 
-        if not self.planned_amount:
-            frappe.throw("Planned Amount is required.")
-    
 
     @frappe.whitelist()
     def set_end_date_from_frequency(self, settings=None):
@@ -80,6 +78,7 @@ class MultiDimensionalBudget(Document):
         
         return self.end_date
     
+
     def set_budget_actions_from_settings(self, settings=None):
         if not settings:
             settings = frappe.db.get_value(
@@ -248,6 +247,16 @@ class MultiDimensionalBudget(Document):
         if self.allowed_amount > 0 and self.amount_used > 0:
             self.percentage_used = (self.amount_used / self.allowed_amount) * 100
     
+    
+    def validate_duplicate_accounts(self):
+        """Validate if the same account is selected multiple times."""
+
+        accounts = []
+        for row in self.accounts:
+            if row.account not in accounts:
+                accounts.append(row.account)
+            else:
+                frappe.throw(f"Duplicate account found: {row.account}")
 
 @frappe.whitelist()
 def get_acc_dimensions():
