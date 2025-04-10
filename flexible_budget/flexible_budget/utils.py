@@ -125,7 +125,7 @@ def get_revenue_per_target_doc(doc):
     doc.reload()
 
 
-def validate_budget(doc, method):
+def validate_budget_on_po_and_mr(doc, method):
     """Validate budget for Purchase Order and Material Request."""
 
     for item in doc.items:
@@ -177,6 +177,29 @@ def validate_budget_on_pinv(doc, method):
         )
 
         validate_expense_against_budget(args, expense_amount=item.amount, method=method)
+
+
+def validate_budget_on_jv(doc, method):
+    """Validate budget for Journal Entry."""
+
+    if doc.voucher_type == "Bank Entry":
+        return
+
+    for item in doc.accounts:
+        args = item.as_dict()
+        child_doctype = item.doctype
+        is_new = True if item.is_new() else False
+        args.update(
+            {
+                "doctype": doc.doctype,
+                "child_doctype": child_doctype,
+                "is_child_new": is_new,
+                "company": doc.company,
+                "posting_date": doc.posting_date,
+            }
+        )
+
+        validate_expense_against_budget(args, expense_amount=item.credit_in_account_currency, method=method)
 
 
 def validate_expense_against_budget(args, expense_amount=0, method='before_save'):
@@ -297,8 +320,11 @@ def compare_expense_with_budget(
             
         elif args.get("doctype") == "Purchase Order" and budget.applicable_on_purchase_order:
             amount = args.ordered_amount
-    else:
+    
+    elif amount and args.get("doctype") == "Purchase Invoice":
         args.invoice_amount = amount
+    elif amount and args.get("doctype") == "Journal Entry":
+        args.jv_amount = amount
     
     total_expense = args.actual_expense + amount
     
@@ -523,13 +549,31 @@ def get_expense_breakup(args, currency, budget):
                 doctype="Purchase Invoice",
                 filters=common_filters.copy().update({
                     "status": [["!=", "Paid"]],
-                    "transaction_date": ["between", [str(budget.start_date), str(budget.end_date)]],
+                    "posting_date": ["between", [str(budget.start_date), str(budget.end_date)]],
                     "item_code": args.item_code,
                     "per_billed": [["<", 100]],
                 }),
             )
         + " - "
         + frappe.bold(fmt_money(args.invoice_amount, currency=currency))
+        + "</li>"
+    )
+
+    msg += (
+        "<li>"
+            + frappe.utils.get_link_to_report(
+                "Journal Entry",
+                label="Pending JVs",
+                report_type="Report Builder",
+                doctype="Journal Entry",
+                filters=common_filters.copy().update({
+                    "posting_date": ["between", [str(budget.start_date), str(budget.end_date)]],
+                    "account": args.account,
+                    "per_billed": [["<", 100]],
+                }),
+            )
+        + " - "
+        + frappe.bold(fmt_money(args.jv_amount, currency=currency))
         + "</li></ul>"
     )
     

@@ -138,16 +138,20 @@ app_license = "mit"
 # Hook on document methods and events
 doc_events = {
     "Purchase Order": {
-        "before_save": "flexible_budget.flexible_budget.utils.validate_budget",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget"
+        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr"
     },
     "Material Request": {
-        "before_save": "flexible_budget.flexible_budget.utils.validate_budget",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget"
+        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr"
     },
     "Purchase Invoice": {
         "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv",
         "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv"
+    },
+    "Journal Entry": {
+        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_jv"
     },
 }
 
