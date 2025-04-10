@@ -128,9 +128,13 @@ def get_revenue_per_target_doc(doc):
 def validate_budget(doc, method):
     for item in doc.items:
         args = item.as_dict()
+        child_doctype = item.doctype
+        is_new = True if item.is_new() else False
         args.update(
             {
                 "doctype": doc.doctype,
+                "child_doctype": child_doctype,
+                "is_child_new": is_new,
                 "company": doc.company,
                 "posting_date": (
                     doc.schedule_date
@@ -140,9 +144,9 @@ def validate_budget(doc, method):
             }
         )
 
-        validate_expense_against_budget(args)
+        validate_expense_against_budget(args, expense_amount=0, method=method)
 
-def validate_expense_against_budget(args, expense_amount=0):
+def validate_expense_against_budget(args, expense_amount=0, method='before_save'):
     args = frappe._dict(args)
     
     if args.get("company") and not args.fiscal_year:
@@ -181,8 +185,6 @@ def validate_expense_against_budget(args, expense_amount=0):
     for budget_id in budgets:
         budget_doc = frappe.get_doc("Multi-Dimensional Budget", budget_id)
 
-        dimensions = []
-
         count = 0
         no_of_dimensions = len(budget_doc.accounting_dimensions)
 
@@ -191,28 +193,29 @@ def validate_expense_against_budget(args, expense_amount=0):
                 args.get(frappe.scrub(row.accounting_dimension)) and
                 args.get(frappe.scrub(row.accounting_dimension)) == row.accounting_dimension_name
             ):
-                dimensions.append({
-                    "document_type": row.accounting_dimension,
-                    "accounting_dimension": row.accounting_dimension_name,
-                    "fieldname": "accounting_dimension_name"
-                })
                 count += 1
         
         if count != no_of_dimensions:
             continue
         else:
-            valid_budget = budget_doc
-            break
+            for row in budget_doc.accounts:
+                if row.account == args.account:
+                    valid_budget = budget_doc.as_dict()
+                    valid_budget["budget_amount"] = row.budget_amount
+                    valid_budget["target_percentage"] = get_target_revenue_percent(args.company)
+                    valid_budget["allowed_amount"] = row.budget_amount * (valid_budget["target_percentage"] / 100)
+
+                    break
     
     if not valid_budget:
         return
     
     budget_records = [valid_budget]
     if budget_records:
-        validate_budget_records(args, budget_records, expense_amount)
+        validate_budget_records(args, budget_records, expense_amount, method)
 
 
-def validate_budget_records(args, budget_records, expense_amount):
+def validate_budget_records(args, budget_records, expense_amount, method):
     for budget in budget_records:
         action = get_actions(args, budget)
 
@@ -225,11 +228,8 @@ def validate_budget_records(args, budget_records, expense_amount):
                 action,
                 budget,
                 expense_amount,
+                method
             )
-        
-        budget.calculate_budget_usage(args.amount)
-        budget.db_update()
-        budget.reload()
 
 
 def get_actions(args, budget):
@@ -248,7 +248,8 @@ def compare_expense_with_budget(
     args,
     action,
     budget,
-    amount=0
+    amount=0,
+    method='before_save'
 ):
     args.actual_expense = get_actual_expense(args, budget)
     args.requested_amount = 0
@@ -296,10 +297,17 @@ def compare_expense_with_budget(
         ):
             action = "Warn"
         
+        if method != "on_submit" and action == "Stop":
+            action = "Warn"
+        
         if action == "Stop":
             frappe.throw(msg, BudgetError, title=_("Budget Exceeded"))
         else:
+            update_budget_values(args, budget)
             frappe.msgprint(msg, indicator="orange", title=_("Budget Exceeded"))
+    
+    else:
+        update_budget_values(args, budget)
         
 
 def get_actual_expense(args, budget):
@@ -350,11 +358,14 @@ def get_ordered_amount(args, budget):
     data = frappe.db.sql(
         f""" select ifnull(sum(child.amount - child.billed_amt), 0) as amount
         from `tabPurchase Order Item` child, `tabPurchase Order` parent where
-        parent.name = child.parent and child.item_code = %s and parent.docstatus = 1 and child.amount > child.billed_amt
+        parent.name = child.parent and child.item_code = %s and child.amount > child.billed_amt
         and parent.status != 'Closed' and {condition}""",
         (item_code,),
         as_list=1
     )
+    # remove condition of docstatus = 1 because budget validation will also work for draft PO, MR, PI and JE
+    #  and parent.docstatus = 1
+    
     amount = data[0][0] if data else 0
     
     return amount
@@ -367,11 +378,13 @@ def get_requested_amount(args, budget):
     data = frappe.db.sql(
         """ select ifnull((sum(child.stock_qty - child.ordered_qty) * rate), 0) as amount
         from `tabMaterial Request Item` child, `tabMaterial Request` parent where parent.name = child.parent and
-        child.item_code = %s and parent.docstatus = 1 and child.stock_qty > child.ordered_qty and {} and
+        child.item_code = %s and child.stock_qty > child.ordered_qty and {} and
         parent.material_request_type = 'Purchase' and parent.status != 'Stopped'""".format(condition),
         (item_code,),
         as_list=1,
     )
+    # remove condition of docstatus = 1 because budget validation will also work for draft PO, MR, PI and JE
+    #  and parent.docstatus = 1
 
     amount = data[0][0] if data else 0
     
@@ -469,3 +482,60 @@ def get_expense_breakup(args, currency, budget):
     )
     
     return msg
+
+
+def get_target_revenue_percent(company):
+    """Get target revenue percentage for Multi-Dimensional Budget."""
+
+    frequency = frappe.db.get_value("Company Budget Control", {"company": company}, ["frequency"])
+    
+    frequency = (frequency or "").strip().lower()
+
+    days_diff = 0
+    if frequency == "weekly":
+        days_diff = 7
+    elif frequency == "monthly":
+        days_diff = 30
+    elif frequency == "quarterly":
+        days_diff = 90
+    elif frequency == "half-yearly" or frequency == "6 months":
+        days_diff = 180
+    elif frequency == "yearly":
+        days_diff = 365
+    
+    today = getdate("2024-03-08")
+    prev_date = add_days(today, -days_diff)
+    target_revenue_docs = frappe.get_all(
+        "Target Revenue",
+        filters={
+            "docstatus": 1,
+            "start_date": ["<=", prev_date],
+            "end_date": [">=", prev_date],
+            "company": company
+        },
+        fields=["target_percentage"],
+    )
+    if len(target_revenue_docs) == 0:
+        return 0
+    
+    return target_revenue_docs[0].target_percentage or 0
+
+
+def update_budget_values(args, budget):
+    """Update budget values to expense documents."""
+
+    # frappe.throw(str(budget))
+
+    if args.child_doctype and args.name and not args.is_child_new:
+        child_doc = frappe.get_doc(args.child_doctype, args.name)
+        child_doc.budget_amount = budget.budget_amount
+        child_doc.current_allowed_amount = budget.allowed_amount
+        child_doc.current_revenue_percent = budget.target_percentage
+
+        # frappe.throw(str(child_doc.doctype))
+
+        # if child_doc.docstatus == 1:
+        child_doc.save()
+        # child_doc.db_update()
+        # child_doc.reload()
+        
