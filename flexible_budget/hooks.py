@@ -145,6 +145,10 @@ doc_events = {
         "before_save": "flexible_budget.flexible_budget.utils.validate_budget",
         "on_submit": "flexible_budget.flexible_budget.utils.validate_budget"
     },
+    "Purchase Invoice": {
+        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv",
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv"
+    },
 }
 
 # Scheduled Tasks

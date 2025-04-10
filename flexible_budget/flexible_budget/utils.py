@@ -126,6 +126,8 @@ def get_revenue_per_target_doc(doc):
 
 
 def validate_budget(doc, method):
+    """Validate budget for Purchase Order and Material Request."""
+
     for item in doc.items:
         args = item.as_dict()
         child_doctype = item.doctype
@@ -145,6 +147,37 @@ def validate_budget(doc, method):
         )
 
         validate_expense_against_budget(args, expense_amount=0, method=method)
+
+def validate_budget_on_pinv(doc, method):
+    """Validate budget for Purchase Invoice."""
+
+    for item in doc.items:
+        if item.purchase_order or item.po_detail:
+            continue
+
+        elif not item.purchase_order and (item.purchase_receipt or item.pr_detail):
+            if item.pr_detail:
+                po_details = frappe.get_cached_value("Purchase Receipt Item", item.pr_detail, ["purchase_order", "purchase_order_item"], as_dict=True)
+
+                if po_details.purchase_order or po_details.purchase_order_item:
+                    continue
+
+
+        args = item.as_dict()
+        child_doctype = item.doctype
+        is_new = True if item.is_new() else False
+        args.update(
+            {
+                "doctype": doc.doctype,
+                "child_doctype": child_doctype,
+                "is_child_new": is_new,
+                "company": doc.company,
+                "posting_date": doc.posting_date,
+            }
+        )
+
+        validate_expense_against_budget(args, expense_amount=item.amount, method=method)
+
 
 def validate_expense_against_budget(args, expense_amount=0, method='before_save'):
     args = frappe._dict(args)
@@ -264,6 +297,8 @@ def compare_expense_with_budget(
             
         elif args.get("doctype") == "Purchase Order" and budget.applicable_on_purchase_order:
             amount = args.ordered_amount
+    else:
+        args.invoice_amount = amount
     
     total_expense = args.actual_expense + amount
     
@@ -449,7 +484,6 @@ def get_expense_breakup(args, currency, budget):
                 doctype="Material Request",
                 filters=common_filters.copy().update({
                     "status": [["!=", "Stopped"]],
-                    "docstatus": 1,
                     "material_request_type": "Purchase",
                     "schedule_date": ["between", [str(budget.start_date), str(budget.end_date)]],
                     "item_code": args.item_code,
@@ -470,7 +504,6 @@ def get_expense_breakup(args, currency, budget):
                 doctype="Purchase Order",
                 filters=common_filters.copy().update({
                     "status": [["!=", "Closed"]],
-                    "docstatus": 1,
                     "transaction_date": ["between", [str(budget.start_date), str(budget.end_date)]],
                     "item_code": args.item_code,
                     "per_billed": [["<", 100]],
@@ -478,6 +511,25 @@ def get_expense_breakup(args, currency, budget):
             )
         + " - "
         + frappe.bold(fmt_money(args.ordered_amount, currency=currency))
+        + "</li>"
+    )
+
+    msg += (
+        "<li>"
+            + frappe.utils.get_link_to_report(
+                "Purchase Invoice",
+                label="Pending Invoices",
+                report_type="Report Builder",
+                doctype="Purchase Invoice",
+                filters=common_filters.copy().update({
+                    "status": [["!=", "Paid"]],
+                    "transaction_date": ["between", [str(budget.start_date), str(budget.end_date)]],
+                    "item_code": args.item_code,
+                    "per_billed": [["<", 100]],
+                }),
+            )
+        + " - "
+        + frappe.bold(fmt_money(args.invoice_amount, currency=currency))
         + "</li></ul>"
     )
     
