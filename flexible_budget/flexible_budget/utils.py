@@ -5,28 +5,6 @@ from frappe.utils import flt, getdate, nowdate, add_days, fmt_money
 from erpnext.accounts.doctype.budget.budget import get_item_details, BudgetError
 
 
-def update_allowed_amount():
-    """Update allowed amount for Multi-Dimensional Budget based on Target Revenue."""
-
-    prev_day = add_days(nowdate(), -1)
-
-    multi_budget_docs = frappe.get_all(
-        "Multi-Dimensional Budget",
-        filters={
-            "docstatus": 1,
-            "start_date": ["<=", prev_day],
-            "end_date": [">=", prev_day],
-        },
-        pluck="name"
-    )
-
-    for budget_id in multi_budget_docs:
-        budget_doc = frappe.get_doc("Multi-Dimensional Budget", budget_id)
-        budget_doc.set_allowed_amount()
-        budget_doc.db_update()
-        budget_doc.reload()
-
-
 def update_revenue(revenue_doc=None):
     if revenue_doc:
         get_revenue_per_target_doc(revenue_doc)

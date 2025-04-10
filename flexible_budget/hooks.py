@@ -162,9 +162,6 @@ scheduler_events = {
     "Cron": {
         "30 0 * * *": [
             "flexible_budget.flexible_budget.utils.update_revenue"
-        ],
-        "30 1 * * *": [
-            "flexible_budget.flexible_budget.utils.update_allowed_amount"
         ]
     }
 }
