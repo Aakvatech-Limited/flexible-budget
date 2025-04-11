@@ -126,6 +126,7 @@ def validate_budget_on_po_and_mr(doc, method):
 
         validate_expense_against_budget(args, expense_amount=0, method=method)
 
+
 def validate_budget_on_pinv(doc, method):
     """Validate budget for Purchase Invoice."""
 
@@ -140,7 +141,6 @@ def validate_budget_on_pinv(doc, method):
                 if po_details.purchase_order or po_details.purchase_order_item:
                     continue
 
-
         args = item.as_dict()
         child_doctype = item.doctype
         is_new = True if item.is_new() else False
@@ -154,7 +154,8 @@ def validate_budget_on_pinv(doc, method):
             }
         )
 
-        validate_expense_against_budget(args, expense_amount=item.amount, method=method)
+        validate_expense_against_budget(args, expense_amount=item.base_amount, method=method)
+
 
 
 def validate_budget_on_jv(doc, method):
@@ -177,7 +178,7 @@ def validate_budget_on_jv(doc, method):
             }
         )
 
-        validate_expense_against_budget(args, expense_amount=item.credit_in_account_currency, method=method)
+        validate_expense_against_budget(args, expense_amount=item.debit_in_account_currency, method=method)
 
 
 def validate_expense_against_budget(args, expense_amount=0, method='before_save'):
