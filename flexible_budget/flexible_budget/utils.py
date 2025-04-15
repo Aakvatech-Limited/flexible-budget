@@ -120,14 +120,17 @@ def get_grouped_item_amounts(items):
 
     for item in items:
         account_field = ""
+        amount_field = "amount"
         if item.doctype ==  "Purchase Order Item":
             account_field = "expense_account"
         elif item.doctype == "Material Request Item":
             account_field = "expense_account"
         elif item.doctype == "Purchase Invoice Item":
+            amount_field = "base_amount"
             account_field = "expense_account"
         elif item.doctype == "Journal Entry Account":
             account_field = "account"
+            amount_field = "debit_in_account_currency"
         else:
             continue
             
@@ -140,10 +143,10 @@ def get_grouped_item_amounts(items):
         key = tuple(key_values)
 
         if key in grouped_data:
-            grouped_data[key].amount += item.amount or 0.0
+            grouped_data[key].amount += item.get(amount_field)  or 0.0
         else:
             new_item = copy.deepcopy(item)
-            new_item.amount = item.amount or 0.0
+            new_item.amount = item.get(amount_field)  or 0.0
             grouped_data[key] = new_item
 
     result = []
@@ -353,23 +356,12 @@ def compare_expense_with_budget(
     method='before_save'
 ):
     args.actual_expense = get_actual_expense(args, budget)
-    args.requested_amount = 0
-    args.ordered_amount = 0
+    args.requested_amount = get_requested_amount(args, budget)
+    args.ordered_amount = get_ordered_amount(args, budget)
+    args.invoice_amount = get_invoice_amount(args, budget)
+    args.jv_amount = get_jv_amount(args, budget)
     
-    if not amount:
-        args.requested_amount = get_requested_amount(args, budget)
-        args.ordered_amount = get_ordered_amount(args, budget)
-        
-        if args.get("doctype") == "Material Request" and budget.applicable_on_material_request:
-            amount = args.requested_amount + args.ordered_amount
-            
-        elif args.get("doctype") == "Purchase Order" and budget.applicable_on_purchase_order:
-            amount = args.ordered_amount
-    
-    elif amount and args.get("doctype") == "Purchase Invoice":
-        args.invoice_amount = amount
-    elif amount and args.get("doctype") == "Journal Entry":
-        args.jv_amount = amount
+    amount = args.get("requested_amount", 0) + args.get("ordered_amount", 0) + args.get("invoice_amount", 0) + args.get("jv_amount", 0)
     
     total_expense = args.actual_expense + amount
     
@@ -502,8 +494,43 @@ def get_requested_amount(args, budget):
     return amount
 
 
+def get_invoice_amount(args, budget):
+    condition = get_other_condition(args, budget, "Purchase Invoice")
+    
+    data = frappe.db.sql(
+        f""" select ifnull(sum(child.base_amount), 0) as amount
+        from `tabPurchase Invoice Item` child, `tabPurchase Invoice` parent where
+        parent.name = child.parent and parent.docstatus = 0 and child.purchase_order is null and child.pr_detail is null
+        and {condition}""",
+        as_list=1
+    )
+    
+    amount = data[0][0] if data else 0
+    
+    return amount
+
+
+def get_jv_amount(args, budget):
+    condition = get_other_condition(args, budget, "Journal Entry")
+
+    data = frappe.db.sql(
+        f""" select ifnull(sum(child.debit_in_account_currency - child.credit_in_account_currency), 0) as amount
+        from `tabJournal Entry Account` child, `tabJournal Entry` parent where
+        parent.name = child.parent and parent.docstatus = 0 and {condition}""",
+        as_list=1
+    )
+    
+    amount = data[0][0] if data else 0
+
+    return amount
+
+
 def get_other_condition(args, budget, for_doc):
-    condition = " child.expense_account = '%s'" % (args.expense_account)
+    condition = ""
+    if for_doc == "Journal Entry":
+        condition = " child.account = '%s'" % (args.account)
+    else:
+        condition = " child.expense_account = '%s'" % (args.expense_account or args.account)
     
     for row in budget.get("accounting_dimensions"):
         budget_against_field = frappe.scrub(row.accounting_dimension)
@@ -511,10 +538,17 @@ def get_other_condition(args, budget, for_doc):
         if budget_against_field and args.get(budget_against_field):
             condition += f" and child.{budget_against_field} = '{args.get(budget_against_field)}'"
 
-        date_field = "schedule_date" if for_doc == "Material Request" else "transaction_date"
+    date_field = ""
+    if for_doc == "Purchase Order":
+        date_field = "transaction_date"
+    elif for_doc == "Material Request":
+        date_field = "schedule_date"
+    else:
+        date_field = "posting_date"
 
-        condition += f""" and parent.{date_field}
-            between '{budget.start_date}' and '{budget.end_date}' """
+    condition += f""" and parent.{date_field}
+        between '{budget.start_date}' and '{budget.end_date}'
+         and parent.company = '{args.company}' """
     
     return condition
 
