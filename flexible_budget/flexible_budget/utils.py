@@ -158,6 +158,9 @@ def get_grouped_item_amounts(items):
 def validate_budget_on_po_and_mr(doc, method):
     """Validate budget for Purchase Order and Material Request."""
 
+    if doc.bypass_budget_validation:
+        return
+
     items = get_grouped_item_amounts(doc.items)
 
     for item in items:
@@ -183,6 +186,9 @@ def validate_budget_on_po_and_mr(doc, method):
 
 def validate_budget_on_pinv(doc, method):
     """Validate budget for Purchase Invoice."""
+
+    if doc.bypass_budget_validation:
+        return
 
     items = get_grouped_item_amounts(doc.items)
 
@@ -215,6 +221,9 @@ def validate_budget_on_pinv(doc, method):
 
 def validate_budget_on_jv(doc, method):
     """Validate budget for Journal Entry."""
+
+    if doc.bypass_budget_validation:
+        return
 
     if doc.voucher_type == "Bank Entry":
         return
