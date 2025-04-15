@@ -1,8 +1,11 @@
+import copy
 import frappe
 from frappe import _
+from collections import defaultdict
 from erpnext.accounts.utils import get_fiscal_year
 from frappe.utils import flt, getdate, nowdate, add_days, fmt_money
 from erpnext.accounts.doctype.budget.budget import get_item_details, BudgetError
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions
 
 
 def update_revenue(revenue_doc=None):
@@ -95,6 +98,7 @@ def get_revenue_per_target_doc(doc):
             total_credit += flt(entry.get("credit", 0))
 
     net_revenue = total_credit - total_debit
+    frappe.throw(str(gl_entries_by_account))
 
     doc.earned_amount += abs(net_revenue)
     doc.calculate_target_percentage()
@@ -103,10 +107,60 @@ def get_revenue_per_target_doc(doc):
     doc.reload()
 
 
+def get_grouped_item_amounts(items):
+    """
+    Group items by accounting_dimensions, cost_center, project, and expense_account.
+    Return one representative item object per group with total amount aggregated from all matching items.
+    """
+
+    grouped_data = {}
+    accounting_dimensions = get_accounting_dimensions()  # e.g., ['branch', 'department']
+    extra_dimensions = ["cost_center", "project"]
+    all_dimensions = accounting_dimensions + extra_dimensions
+
+    for item in items:
+        account_field = ""
+        if item.doctype ==  "Purchase Order Item":
+            account_field = "expense_account"
+        elif item.doctype == "Material Request Item":
+            account_field = "expense_account"
+        elif item.doctype == "Purchase Invoice Item":
+            account_field = "expense_account"
+        elif item.doctype == "Journal Entry Account":
+            account_field = "account"
+        else:
+            continue
+            
+        key_values = [item.get(account_field)]
+        for dim in all_dimensions:
+            val = getattr(item, dim, None)
+            if val:
+                key_values.append(val)
+        
+        key = tuple(key_values)
+
+        if key in grouped_data:
+            grouped_data[key].amount += item.amount or 0.0
+        else:
+            new_item = copy.deepcopy(item)
+            new_item.amount = item.amount or 0.0
+            grouped_data[key] = new_item
+
+    result = []
+    for item in grouped_data.values():
+        # item_dict = item.as_dict()
+        # item_dict["total_amount"] = item.amount
+        result.append(item)
+    
+    return result
+
+
 def validate_budget_on_po_and_mr(doc, method):
     """Validate budget for Purchase Order and Material Request."""
 
-    for item in doc.items:
+    items = get_grouped_item_amounts(doc.items)
+
+    for item in items:
         args = item.as_dict()
         child_doctype = item.doctype
         is_new = True if item.is_new() else False
@@ -130,7 +184,9 @@ def validate_budget_on_po_and_mr(doc, method):
 def validate_budget_on_pinv(doc, method):
     """Validate budget for Purchase Invoice."""
 
-    for item in doc.items:
+    items = get_grouped_item_amounts(doc.items)
+
+    for item in items:
         if item.purchase_order or item.po_detail:
             continue
 
@@ -157,17 +213,18 @@ def validate_budget_on_pinv(doc, method):
         validate_expense_against_budget(args, expense_amount=item.base_amount, method=method)
 
 
-
 def validate_budget_on_jv(doc, method):
     """Validate budget for Journal Entry."""
 
     if doc.voucher_type == "Bank Entry":
         return
 
-    for item in doc.accounts:
-        args = item.as_dict()
-        child_doctype = item.doctype
-        is_new = True if item.is_new() else False
+    accounts = get_grouped_item_amounts(doc.accounts)
+
+    for account in accounts:
+        args = account.as_dict()
+        child_doctype = account.doctype
+        is_new = True if account.is_new() else False
         args.update(
             {
                 "doctype": doc.doctype,
@@ -178,7 +235,7 @@ def validate_budget_on_jv(doc, method):
             }
         )
 
-        validate_expense_against_budget(args, expense_amount=item.debit_in_account_currency, method=method)
+        validate_expense_against_budget(args, expense_amount=account.debit_in_account_currency, method=method)
 
 
 def validate_expense_against_budget(args, expense_amount=0, method='before_save'):
@@ -392,19 +449,22 @@ def get_actual_expense(args, budget):
 
 
 def get_ordered_amount(args, budget):
-    item_code = args.get("item_code")
+    # item_code = args.get("item_code")
     condition = get_other_condition(args, budget, "Purchase Order")
     
     data = frappe.db.sql(
         f""" select ifnull(sum(child.amount - child.billed_amt), 0) as amount
         from `tabPurchase Order Item` child, `tabPurchase Order` parent where
-        parent.name = child.parent and child.item_code = %s and child.amount > child.billed_amt
+        parent.name = child.parent and child.amount > child.billed_amt
         and parent.status != 'Closed' and {condition}""",
-        (item_code,),
         as_list=1
     )
     # remove condition of docstatus = 1 because budget validation will also work for draft PO, MR, PI and JE
     #  and parent.docstatus = 1
+
+    # remove condition of item_code because budget validation will also work all matched items on PO, MR, PI and JE
+    #  and child.item_code = %s
+    #  (item_code,),
     
     amount = data[0][0] if data else 0
     
@@ -412,19 +472,21 @@ def get_ordered_amount(args, budget):
 
 
 def get_requested_amount(args, budget):
-    item_code = args.get("item_code")
+    # item_code = args.get("item_code")
     condition = get_other_condition(args, budget, "Material Request")
     
     data = frappe.db.sql(
         """ select ifnull((sum(child.stock_qty - child.ordered_qty) * rate), 0) as amount
-        from `tabMaterial Request Item` child, `tabMaterial Request` parent where parent.name = child.parent and
-        child.item_code = %s and child.stock_qty > child.ordered_qty and {} and
+        from `tabMaterial Request Item` child, `tabMaterial Request` parent where parent.name = child.parent and child.stock_qty > child.ordered_qty and {} and
         parent.material_request_type = 'Purchase' and parent.status != 'Stopped'""".format(condition),
-        (item_code,),
         as_list=1,
     )
     # remove condition of docstatus = 1 because budget validation will also work for draft PO, MR, PI and JE
     #  and parent.docstatus = 1
+
+    # remove condition of item_code because budget validation will also work all matched items on PO, MR, PI and JE
+    # and child.item_code = %s 
+    #    (item_code,),
 
     amount = data[0][0] if data else 0
     
