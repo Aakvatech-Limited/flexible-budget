@@ -85,6 +85,11 @@ app_license = "mit"
 # before_install = "flexible_budget.install.before_install"
 # after_install = "flexible_budget.install.after_install"
 
+after_migrate = [
+    "flexible_budget.patches.create_custom_fields.execute",
+    "flexible_budget.patches.create_property_setter.execute",
+]
+
 # Uninstallation
 # ------------
 
