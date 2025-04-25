@@ -312,7 +312,7 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method='before_
                 if row.account == args.account:
                     valid_budget = budget_doc.as_dict()
                     valid_budget["budget_amount"] = row.budget_amount
-                    valid_budget["target_percentage"] = get_target_revenue_percent(args.company)
+                    valid_budget["target_percentage"] = get_target_revenue_percent(args.company, args.posting_date)
                     valid_budget["allowed_amount"] = row.budget_amount * (valid_budget["target_percentage"] / 100)
 
                     break
@@ -671,7 +671,7 @@ def get_expense_breakup(args, currency, budget):
     return msg
 
 
-def get_target_revenue_percent(company):
+def get_target_revenue_percent(company, posting_date):
     """Get target revenue percentage for Multi-Dimensional Budget."""
 
     frequency = frappe.db.get_value("Company Budget Control", {"company": company}, ["frequency"])
@@ -690,8 +690,7 @@ def get_target_revenue_percent(company):
     elif frequency == "yearly":
         days_diff = 365
     
-    today = getdate("2024-03-08")
-    prev_date = add_days(today, -days_diff)
+    prev_date = add_days(posting_date, -days_diff)
     target_revenue_docs = frappe.get_all(
         "Target Revenue",
         filters={
