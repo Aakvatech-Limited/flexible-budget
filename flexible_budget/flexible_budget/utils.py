@@ -164,6 +164,8 @@ def validate_budget_on_po_and_mr(doc, method):
     if doc.bypass_budget_validation:
         return
 
+    doc.budget_overview = ""
+
     items = get_grouped_item_amounts(doc.items)
 
     for item in items:
@@ -184,7 +186,7 @@ def validate_budget_on_po_and_mr(doc, method):
             }
         )
 
-        validate_expense_against_budget(args, expense_amount=0, method=method)
+        validate_expense_against_budget(doc, args, expense_amount=0, method=method)
 
 
 def validate_budget_on_pinv(doc, method):
@@ -192,6 +194,8 @@ def validate_budget_on_pinv(doc, method):
 
     if doc.bypass_budget_validation:
         return
+
+    doc.budget_overview = ""
 
     items = get_grouped_item_amounts(doc.items)
 
@@ -219,7 +223,7 @@ def validate_budget_on_pinv(doc, method):
             }
         )
 
-        validate_expense_against_budget(args, expense_amount=item.base_amount, method=method)
+        validate_expense_against_budget(doc, args, expense_amount=item.base_amount, method=method)
 
 
 def validate_budget_on_jv(doc, method):
@@ -230,6 +234,8 @@ def validate_budget_on_jv(doc, method):
 
     if doc.voucher_type == "Bank Entry":
         return
+
+    doc.budget_overview = ""
 
     accounts = get_grouped_item_amounts(doc.accounts)
 
@@ -247,10 +253,10 @@ def validate_budget_on_jv(doc, method):
             }
         )
 
-        validate_expense_against_budget(args, expense_amount=account.debit_in_account_currency, method=method)
+        validate_expense_against_budget(doc, args, expense_amount=account.debit_in_account_currency, method=method)
 
 
-def validate_expense_against_budget(args, expense_amount=0, method='before_save'):
+def validate_expense_against_budget(doc, args, expense_amount=0, method='before_save'):
     args = frappe._dict(args)
     
     if args.get("company") and not args.fiscal_year:
@@ -316,10 +322,10 @@ def validate_expense_against_budget(args, expense_amount=0, method='before_save'
     
     budget_records = [valid_budget]
     if budget_records:
-        validate_budget_records(args, budget_records, expense_amount, method)
+        validate_budget_records(doc, args, budget_records, expense_amount, method)
 
 
-def validate_budget_records(args, budget_records, expense_amount, method):
+def validate_budget_records(doc, args, budget_records, expense_amount, method):
     for budget in budget_records:
         action = get_actions(args, budget)
 
@@ -328,6 +334,7 @@ def validate_budget_records(args, budget_records, expense_amount, method):
 
         if action in ("Stop", "Warn"):
             compare_expense_with_budget(
+                doc,
                 args,
                 action,
                 budget,
@@ -349,6 +356,7 @@ def get_actions(args, budget):
 
 
 def compare_expense_with_budget(
+    doc,
     args,
     action,
     budget,
@@ -365,6 +373,7 @@ def compare_expense_with_budget(
     
     total_expense = args.actual_expense + amount
     
+    currency = frappe.get_cached_value("Company", args.company, "default_currency")
     if total_expense > budget.allowed_amount:
         if args.actual_expense > budget.allowed_amount:
             error_tense = _("is already")
@@ -373,8 +382,6 @@ def compare_expense_with_budget(
             error_tense = _("will be")
             diff = total_expense - budget.allowed_amount
             
-        currency = frappe.get_cached_value("Company", args.company, "default_currency")
-
         dimension_str = ""
         for dimension in budget.accounting_dimensions:
             dimension_str += f"{dimension.accounting_dimension}: <b>{dimension.accounting_dimension_name}</b>, "
@@ -401,12 +408,12 @@ def compare_expense_with_budget(
         if action == "Stop":
             frappe.throw(msg, BudgetError, title=_("Budget Exceeded"))
         else:
-            update_budget_values(args, budget)
+            # update_budget_values(doc, args, budget, total_expense, currency)
             frappe.msgprint(msg, indicator="orange", title=_("Budget Exceeded"))
     
     else:
-        update_budget_values(args, budget)
-        
+        update_budget_values(doc, args, budget, total_expense, currency)
+
 
 def get_actual_expense(args, budget):
     condition1 = f" and gle.posting_date >= '{budget.start_date}' and gle.posting_date <= '{budget.end_date}' "
@@ -701,21 +708,18 @@ def get_target_revenue_percent(company):
     return target_revenue_docs[0].target_percentage or 0
 
 
-def update_budget_values(args, budget):
+def update_budget_values(doc, args, budget, total_expense, currency):
     """Update budget values to expense documents."""
+    budget_overview = doc.budget_overview or ""
 
-    # frappe.throw(str(budget))
+    dimension_str = f"Account: <b>{args.account}</b>"
+    for dimension in budget.accounting_dimensions:
+        dimension_str += f"{dimension.accounting_dimension}: <b>{dimension.accounting_dimension_name}</b>, "
+    
+    msg = f"{dimension_str}:<ul style='list-style-type:disc'>"
+    msg += f"<li>Budget Amount: {frappe.bold(fmt_money(budget.allowed_amount, currency=currency))}</li>"
+    msg += f"<li>Total Expense: {frappe.bold(fmt_money(total_expense, currency=currency))}</li>"
+    msg += f"<li>Remaining Budget: {frappe.bold(fmt_money(budget.allowed_amount - total_expense, currency=currency))}</li>"
+    msg += "</ul><hr>"
 
-    if args.child_doctype and args.name and not args.is_child_new:
-        child_doc = frappe.get_doc(args.child_doctype, args.name)
-        child_doc.budget_amount = budget.budget_amount
-        child_doc.current_allowed_amount = budget.allowed_amount
-        child_doc.current_revenue_percent = budget.target_percentage
-
-        # frappe.throw(str(child_doc.doctype))
-
-        # if child_doc.docstatus == 1:
-        child_doc.save()
-        # child_doc.db_update()
-        # child_doc.reload()
-        
+    doc.budget_overview = budget_overview + msg
