@@ -27,8 +27,7 @@
   {
    "fieldname": "target_amount",
    "fieldtype": "Currency",
-   "label": "Target Amount",
-   "read_only": 1
+   "label": "Target Amount"
   },
   {
    "allow_on_submit": 1,
@@ -88,7 +87,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-09 06:55:25.523945",
+ "modified": "2025-04-28 10:22:40.098171",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Target Revenue",
