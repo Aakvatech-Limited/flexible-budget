@@ -375,9 +375,9 @@ def compare_expense_with_budget(
     
     currency = frappe.get_cached_value("Company", args.company, "default_currency")
     if total_expense > budget.allowed_amount:
-        if args.actual_expense > budget.allowed_amount:
+        if total_expense > budget.allowed_amount:
             error_tense = _("is already")
-            diff = args.actual_expense - budget.allowed_amount
+            diff = total_expense - budget.allowed_amount
         else:
             error_tense = _("will be")
             diff = total_expense - budget.allowed_amount
