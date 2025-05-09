@@ -412,7 +412,7 @@ def compare_expense_with_budget(
         if action == "Stop":
             frappe.throw(msg, BudgetError, title=_("Budget Exceeded"))
         else:
-            # update_budget_values(doc, args, budget, total_expense, currency)
+            update_budget_values(doc, args, budget, total_expense, currency)
             frappe.msgprint(msg, indicator="orange", title=_("Budget Exceeded"))
     
     else:
