@@ -23,6 +23,11 @@ class TargetRevenue(Document):
     def before_save(self):
         self.check_existing_target_revenue()
         self.calculate_target_percentage()
+    
+
+    def on_update_after_submit(self):
+        self.calculate_target_percentage()
+        self.db_update()
 
     
     def on_submit(self):
@@ -56,15 +61,22 @@ class TargetRevenue(Document):
         if settings:
             method = (settings.get("target_calculation_method") or "").strip().lower()
 
+            earned_amount = self.earned_amount or 0
             if method == "revenue-based target":
                 if self.override_earned_amount == 1:
                     self.earned_amount = self.actual_earned_amount
+                else:
+                    self.actual_earned_amount = 0
+                    self.earned_amount = earned_amount
 
                 self.target_amount = self.earned_amount or 0
 
             if self.target_amount:
                 if self.override_earned_amount == 1:
                     self.earned_amount = self.actual_earned_amount
+                else:
+                    self.actual_earned_amount = 0
+                    self.earned_amount = earned_amount
 
                 self.target_percentage = ((self.earned_amount or 0) / (self.target_amount)) * 100
 
