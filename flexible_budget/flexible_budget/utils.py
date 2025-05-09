@@ -92,7 +92,6 @@ def get_revenue_per_target_doc(doc):
             total_credit += flt(entry.get("credit", 0))
 
     net_revenue = total_credit - total_debit
-    frappe.throw(str(gl_entries_by_account))
 
     doc.earned_amount += abs(net_revenue)
     doc.calculate_target_percentage()
