@@ -260,9 +260,9 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method='before_
     
     if args.get("company") and not args.fiscal_year:
         args.fiscal_year = get_fiscal_year(args.get("posting_date"), company=args.get("company"))[0]
-        frappe.flags.exception_approver_role = frappe.get_cached_value(
-			"Company", args.get("company"), "exception_budget_approver_role"
-		)
+        # frappe.flags.exception_approver_role = frappe.get_cached_value(
+		# 	"Company", args.get("company"), "exception_budget_approver_role"
+		# )
     
     if not args.account:
         args.account = args.get("expense_account")
@@ -297,7 +297,11 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method='before_
         count = 0
         no_of_dimensions = len(budget_doc.accounting_dimensions)
 
+        branch_name = ""
         for row in budget_doc.accounting_dimensions:
+            if row.accounting_dimension == "Branch" and not branch_name:
+                branch_name = row.accounting_dimension_name
+            
             if (
                 args.get(frappe.scrub(row.accounting_dimension)) and
                 args.get(frappe.scrub(row.accounting_dimension)) == row.accounting_dimension_name
@@ -311,7 +315,7 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method='before_
                 if row.account == args.account:
                     valid_budget = budget_doc.as_dict()
                     valid_budget["budget_amount"] = row.budget_amount
-                    valid_budget["target_percentage"] = get_target_revenue_percent(args.company, args.posting_date)
+                    valid_budget["target_percentage"] = get_target_revenue_percent(args.company, args.posting_date, branch_name)
                     valid_budget["allowed_amount"] = row.budget_amount * (valid_budget["target_percentage"] / 100)
 
                     break
@@ -670,7 +674,7 @@ def get_expense_breakup(args, currency, budget):
     return msg
 
 
-def get_target_revenue_percent(company, posting_date):
+def get_target_revenue_percent(company, posting_date, branch_name):
     """Get target revenue percentage for Multi-Dimensional Budget."""
 
     frequency = frappe.db.get_value("Company Budget Control", {"company": company}, ["frequency"])
@@ -696,7 +700,8 @@ def get_target_revenue_percent(company, posting_date):
             "docstatus": 1,
             "start_date": ["<=", prev_date],
             "end_date": [">=", prev_date],
-            "company": company
+            "company": company,
+            "branch": branch_name
         },
         fields=["target_percentage"],
     )
