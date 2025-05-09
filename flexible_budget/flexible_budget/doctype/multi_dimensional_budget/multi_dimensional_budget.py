@@ -237,7 +237,7 @@ class MultiDimensionalBudget(Document):
                 break
         
         if not has_branch:
-            frappe.throw(_("Branch dimension is required. <b>Branch</> as accounting dimension must be selected"))
+            frappe.throw(_("Branch dimension is required. <br><b>Branch</b> as accounting dimension must be selected"))
 
 @frappe.whitelist()
 def get_acc_dimensions():
