@@ -1,7 +1,8 @@
 {
  "actions": [],
  "allow_import": 1,
- "autoname": "hash",
+ "allow_rename": 1,
+ "autoname": "naming_series:naming_series",
  "creation": "2025-03-19 16:12:45.011201",
  "default_view": "List",
  "doctype": "DocType",
@@ -28,7 +29,8 @@
   "section_break_jpfe",
   "accounts",
   "section_break_16",
-  "amended_from"
+  "amended_from",
+  "naming_series"
  ],
  "fields": [
   {
@@ -167,16 +169,23 @@
    "fieldtype": "Table",
    "label": "Budget Accounts",
    "options": "Multi-Dimensional Budget Account"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "MDB-.YYYY.-",
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-09 18:50:36.030342",
+ "modified": "2025-05-09 10:30:47.060639",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",
- "naming_rule": "Random",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
