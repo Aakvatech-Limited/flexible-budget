@@ -10,6 +10,9 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import g
 
 def update_revenue(revenue_doc=None):
     if revenue_doc:
+        if revenue_doc.override_earned_amount == 1:
+            return
+
         get_revenue_per_target_doc(revenue_doc)
     else:
         target_revenues = frappe.db.get_all(
@@ -20,6 +23,9 @@ def update_revenue(revenue_doc=None):
 
         for revenue_id in target_revenues:
             revenue_doc = frappe.get_doc("Target Revenue", revenue_id)
+            if revenue_doc.override_earned_amount == 1:
+                continue
+                
             get_revenue_per_target_doc(revenue_doc)
 
 
