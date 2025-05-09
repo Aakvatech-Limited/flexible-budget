@@ -56,9 +56,15 @@ class TargetRevenue(Document):
             method = (settings.get("target_calculation_method") or "").strip().lower()
 
             if method == "revenue-based target":
+                if self.override_earned_amount == 1:
+                    self.earned_amount = self.actual_earned_amount
+
                 self.target_amount = self.earned_amount or 0
 
             if self.target_amount:
+                if self.override_earned_amount == 1:
+                    self.earned_amount = self.actual_earned_amount
+                    
                 self.target_percentage = ((self.earned_amount or 0) / (self.target_amount)) * 100
 
 
