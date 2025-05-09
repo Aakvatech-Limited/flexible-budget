@@ -145,7 +145,8 @@ class MultiDimensionalBudget(Document):
                 "company": self.company,
                 "name": ["!=", self.name],
                 "start_date": ["<=", self.end_date],
-                "end_date": [">=", self.start_date]
+                "end_date": [">=", self.start_date],
+                "docstatus": ["<", 2]
             },
             fields=["name"]
         )
