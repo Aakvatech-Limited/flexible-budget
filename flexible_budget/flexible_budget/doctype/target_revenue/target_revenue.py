@@ -39,6 +39,7 @@ class TargetRevenue(Document):
                 "company": self.company,
                 "name": ["!=", self.name],
                 "end_date": (">=", self.start_date),
+                "docstatus": ["<", 2]
             }
         )
         if existing_target:
@@ -64,7 +65,7 @@ class TargetRevenue(Document):
             if self.target_amount:
                 if self.override_earned_amount == 1:
                     self.earned_amount = self.actual_earned_amount
-                    
+
                 self.target_percentage = ((self.earned_amount or 0) / (self.target_amount)) * 100
 
 
