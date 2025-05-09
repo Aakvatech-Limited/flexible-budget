@@ -35,6 +35,10 @@ class MultiDimensionalBudget(Document):
         self.validate_required_fields()
         self.validate_date_overlap()
         self.validate_accounts()
+    
+
+    def before_submit(self):
+        self.validate_branch_dimension()
 
     
     def validate_required_fields(self):
@@ -222,6 +226,18 @@ class MultiDimensionalBudget(Document):
                             _(f"Accounting Dimension {row.accounting_dimension_name} does not belong to company {self.company}")
                         )
 
+
+    def validate_branch_dimension(self):
+        """Validate if the branch dimension is selected and if it belongs to the same company."""
+
+        has_branch = False
+        for row in self.accounting_dimensions:
+            if row.accounting_dimension == "Branch":
+                has_branch = True
+                break
+        
+        if not has_branch:
+            frappe.throw(_("Branch dimension is required. <b>Branch</> as accounting dimension must be selected"))
 
 @frappe.whitelist()
 def get_acc_dimensions():
