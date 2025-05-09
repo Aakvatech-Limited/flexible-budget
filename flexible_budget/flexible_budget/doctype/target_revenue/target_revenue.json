@@ -9,6 +9,10 @@
   "company",
   "start_date",
   "end_date",
+  "column_break_ipxo",
+  "branch",
+  "override_earned_amount",
+  "actual_earned_amount",
   "column_break_mnfm",
   "target_amount",
   "earned_amount",
@@ -22,12 +26,15 @@
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
-   "options": "Company"
+   "options": "Company",
+   "search_index": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "target_amount",
    "fieldtype": "Currency",
-   "label": "Target Amount"
+   "label": "Target Amount",
+   "search_index": 1
   },
   {
    "allow_on_submit": 1,
@@ -36,7 +43,8 @@
    "fieldtype": "Percent",
    "in_list_view": 1,
    "label": "Target Percentage",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_mnfm",
@@ -46,13 +54,15 @@
    "fieldname": "start_date",
    "fieldtype": "Date",
    "label": "Start Date",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "end_date",
    "fieldtype": "Date",
    "label": "End Date",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "section_break_gjms",
@@ -81,13 +91,43 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Earned Amount",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_ipxo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "options": "Branch",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "override_earned_amount",
+   "fieldtype": "Check",
+   "label": "Override Earned Amount",
+   "search_index": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval: doc.override_earned_amount == 1",
+   "fieldname": "actual_earned_amount",
+   "fieldtype": "Currency",
+   "label": "Actual Earned Amount",
+   "mandatory_depends_on": "eval: doc.override_earned_amount == 1",
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-28 10:22:40.098171",
+ "modified": "2025-05-09 07:21:56.002542",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Target Revenue",
