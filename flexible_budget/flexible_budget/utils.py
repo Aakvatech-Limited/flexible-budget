@@ -51,6 +51,7 @@ def get_revenue_per_target_doc(doc):
             (gle.posting_date >= doc.start_date) &
             (gle.posting_date <= doc.end_date) &
             (gle.is_cancelled == 0) &
+            (gle.branch == doc.branch) &
             (gle.voucher_type != "Period Closing Voucher")
         )
     ).run(as_dict=True)
