@@ -42,6 +42,7 @@ class TargetRevenue(Document):
             "Target Revenue",
             {
                 "company": self.company,
+                "branch": self.branch,
                 "name": ["!=", self.name],
                 "end_date": (">=", self.start_date),
                 "docstatus": ["<", 2]
