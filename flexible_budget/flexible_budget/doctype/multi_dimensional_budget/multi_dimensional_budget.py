@@ -142,16 +142,20 @@ class MultiDimensionalBudget(Document):
     
 
     def validate_date_overlap(self):
+        filters = {
+            "company": self.company,
+            # "name": ["!=", self.name],
+            "start_date": ["<=", self.end_date],
+            "end_date": [">=", self.start_date],
+            "docstatus": ["<", 2]
+        }
 
+        if self.name:
+            filters["name"] = ["!=", self.name]
+        
         existing_budgets = frappe.db.get_all(
             "Multi-Dimensional Budget",
-            filters={
-                "company": self.company,
-                "name": ["!=", self.name],
-                "start_date": ["<=", self.end_date],
-                "end_date": [">=", self.start_date],
-                "docstatus": ["<", 2]
-            },
+            filters=filters,
             fields=["name"]
         )
 
