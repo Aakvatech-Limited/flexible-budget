@@ -59,6 +59,18 @@ frappe.ui.form.on("Multi-Dimensional Budget Detail", {
     }
 });
 
+frappe.ui.form.on("Multi-Dimensional Budget Account", {
+    budget_amount: function(frm, cdt, cdn) {
+        calculate_and_set_total_amount(frm);
+    },
+    accounts_add: function(frm, cdt, cdn) {
+        calculate_and_set_total_amount(frm);
+    },
+    accounts_remove: function(frm, cdt, cdn) {
+        calculate_and_set_total_amount(frm);
+    }
+});
+
 let set_dimension_options = (frm) => {
     frm.call({
         method: "flexible_budget.flexible_budget.doctype.multi_dimensional_budget.multi_dimensional_budget.get_acc_dimensions",
@@ -85,4 +97,28 @@ let set_queries = (frm) => {
             }
         };
     });
+}
+
+function calculate_and_set_total_amount(frm) {
+    if (frm.doc.accounts && frm.doc.accounts.length > 0) {
+        frm.call({
+            method: "calculate_total_amount",
+            args: {
+                caller: "Front End"
+            },
+            doc: frm.doc,
+            callback: function(r) {
+                if (r.message && r.message !== undefined) {
+                    frm.set_value("total_budget_amount", r.message);
+                    frm.refresh_field("total_budget_amount");
+                } else {
+                    frm.set_value("total_budget_amount", 0);
+                    frm.refresh_field("total_budget_amount");
+                }
+            }
+        });
+    } else {
+        frm.set_value("total_budget_amount", 0);
+        frm.refresh_field("total_budget_amount");
+    }
 }

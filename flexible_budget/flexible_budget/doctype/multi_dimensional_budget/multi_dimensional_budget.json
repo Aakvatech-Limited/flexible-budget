@@ -30,7 +30,9 @@
   "accounts",
   "section_break_16",
   "amended_from",
-  "naming_series"
+  "naming_series",
+  "column_break_gtgh",
+  "total_budget_amount"
  ],
  "fields": [
   {
@@ -176,12 +178,26 @@
    "label": "Naming Series",
    "options": "MDB-.YYYY.-",
    "search_index": 1
+  },
+  {
+   "fieldname": "column_break_gtgh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_budget_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Total Budget Amount",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-09 10:30:47.060639",
+ "modified": "2025-06-04 16:47:08.241720",
  "modified_by": "Administrator",
  "module": "Flexible Budget",
  "name": "Multi-Dimensional Budget",

@@ -35,6 +35,7 @@ class MultiDimensionalBudget(Document):
         self.validate_required_fields()
         self.validate_date_overlap()
         self.validate_accounts()
+        self.calculate_total_amount()
     
 
     def before_submit(self):
@@ -242,6 +243,23 @@ class MultiDimensionalBudget(Document):
         
         if not has_branch:
             frappe.throw(_("Branch dimension is required. <br><b>Branch</b> as accounting dimension must be selected"))
+
+
+    @frappe.whitelist()
+    def calculate_total_amount(self, caller=None):
+        """Calculate the total budget amount from all accounts in the child table."""
+
+        total_amount = 0.0
+        
+        for account_row in self.get("accounts", []):
+            if account_row.budget_amount:
+                total_amount += account_row.budget_amount
+        
+        if caller:
+            return total_amount
+
+        self.total_budget_amount = total_amount
+
 
 @frappe.whitelist()
 def get_acc_dimensions():
