@@ -12,6 +12,18 @@ frappe.query_reports["Multi-Dimensional Budget Variance"] = {
 			"reqd": 1
 		},
 		{
+			"fieldname": "from_date",
+			"label": __("From Date"),
+			"fieldtype": "Date",
+			"reqd": 0
+		},
+		{
+			"fieldname": "to_date",
+			"label": __("To Date"),
+			"fieldtype": "Date",
+			"reqd": 0
+		},
+		{
 			"fieldname": "from_fiscal_year",
 			"label": __("From Fiscal Year"),
 			"fieldtype": "Link",

@@ -167,6 +167,32 @@ def apply_additional_filters(data, filters):
 	filtered_data = []
 	
 	for row in data:
+		# Filter by date range (optional)
+		if filters.get("from_date") or filters.get("to_date"):
+				month_start = row.get("month_start")
+				month_end = row.get("month_end")
+
+				if month_start and month_end:
+						month_start = getdate(month_start)
+						month_end = getdate(month_end)
+
+						# Check if month overlaps with filter date range
+						filter_from_date = (
+								getdate(filters.get("from_date"))
+								if filters.get("from_date")
+								else None
+						)
+						filter_to_date = (
+								getdate(filters.get("to_date")) if filters.get("to_date") else None
+						)
+
+						# Skip if month is completely before from_date
+						if filter_from_date and month_end < filter_from_date:
+								continue
+
+						# Skip if month is completely after to_date
+						if filter_to_date and month_start > filter_to_date:
+								continue
 		# Filter by account
 		if filters.get("account") and row.get("account") not in filters.get("account"):
 			continue
