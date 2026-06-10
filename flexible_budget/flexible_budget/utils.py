@@ -7,6 +7,7 @@ from erpnext.accounts.doctype.budget.budget import get_item_details, BudgetError
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
     get_accounting_dimensions,
 )
+from frappe.query_builder.functions import Coalesce, Sum
 
 
 def update_revenue(revenue_doc=None):
@@ -478,111 +479,109 @@ def get_actual_expense(args, budget):
 
 
 def get_ordered_amount(args, budget):
-    # item_code = args.get("item_code")
-    condition = get_other_condition(args, budget, "Purchase Order")
+    parent = frappe.qb.DocType("Purchase Order")
+    child = frappe.qb.DocType("Purchase Order Item")
 
-    data = frappe.db.sql(
-        f""" select ifnull(sum(child.amount - child.billed_amt), 0) as amount
-        from `tabPurchase Order Item` child, `tabPurchase Order` parent where
-        parent.name = child.parent and child.amount > child.billed_amt
-        and parent.status != 'Closed' and {condition}""",
-        as_list=1,
+    query = (
+        frappe.qb.from_(child)
+        .join(parent)
+        .on(parent.name == child.parent)
+        .select(Coalesce(Sum(child.amount - child.billed_amt), 0))
+        .where(child.amount > child.billed_amt)
+        .where(parent.status != "Closed")
     )
-    # remove condition of docstatus = 1 because budget validation will also work for draft PO, MR, PI and JE
-    #  and parent.docstatus = 1
 
-    # remove condition of item_code because budget validation will also work all matched items on PO, MR, PI and JE
-    #  and child.item_code = %s
-    #  (item_code,),
-
-    amount = data[0][0] if data else 0
-
-    return amount
+    query = add_budget_filters(query, args, budget, "Purchase Order", parent, child)
+    result = query.run()
+    return flt(result[0][0]) if result else 0.0
 
 
 def get_requested_amount(args, budget):
-    # item_code = args.get("item_code")
-    condition = get_other_condition(args, budget, "Material Request")
+    parent = frappe.qb.DocType("Material Request")
+    child = frappe.qb.DocType("Material Request Item")
 
-    data = frappe.db.sql(
-        """ select ifnull((sum(child.stock_qty - child.ordered_qty) * rate), 0) as amount
-        from `tabMaterial Request Item` child, `tabMaterial Request` parent where parent.name = child.parent and child.stock_qty > child.ordered_qty and {} and
-        parent.material_request_type = 'Purchase' and parent.status != 'Stopped'""".format(
-            condition
-        ),
-        as_list=1,
+    query = (
+        frappe.qb.from_(child)
+        .join(parent)
+        .on(parent.name == child.parent)
+        .select(Coalesce(Sum((child.stock_qty - child.ordered_qty) * child.rate), 0))
+        .where(child.stock_qty > child.ordered_qty)
+        .where(parent.material_request_type == "Purchase")
+        .where(parent.status != "Stopped")
     )
-    # remove condition of docstatus = 1 because budget validation will also work for draft PO, MR, PI and JE
-    #  and parent.docstatus = 1
 
-    # remove condition of item_code because budget validation will also work all matched items on PO, MR, PI and JE
-    # and child.item_code = %s
-    #    (item_code,),
-
-    amount = data[0][0] if data else 0
-
-    return amount
+    query = add_budget_filters(query, args, budget, "Material Request", parent, child)
+    result = query.run()
+    return flt(result[0][0]) if result else 0.0
 
 
 def get_invoice_amount(args, budget):
-    condition = get_other_condition(args, budget, "Purchase Invoice")
+    parent = frappe.qb.DocType("Purchase Invoice")
+    child = frappe.qb.DocType("Purchase Invoice Item")
 
-    data = frappe.db.sql(
-        f""" select ifnull(sum(child.base_amount), 0) as amount
-        from `tabPurchase Invoice Item` child, `tabPurchase Invoice` parent where
-        parent.name = child.parent and parent.docstatus = 0 and child.purchase_order is null and child.pr_detail is null
-        and {condition}""",
-        as_list=1,
+    query = (
+        frappe.qb.from_(child)
+        .join(parent)
+        .on(parent.name == child.parent)
+        .select(Coalesce(Sum(child.base_amount), 0))
+        .where(parent.docstatus == 0)
+        .where(child.purchase_order.isnull())
+        .where(child.pr_detail.isnull())
     )
 
-    amount = data[0][0] if data else 0
-
-    return amount
+    query = add_budget_filters(query, args, budget, "Purchase Invoice", parent, child)
+    result = query.run()
+    return flt(result[0][0]) if result else 0.0
 
 
 def get_jv_amount(args, budget):
-    condition = get_other_condition(args, budget, "Journal Entry")
+    parent = frappe.qb.DocType("Journal Entry")
+    child = frappe.qb.DocType("Journal Entry Account")
 
-    data = frappe.db.sql(
-        f""" select ifnull(sum(child.debit_in_account_currency - child.credit_in_account_currency), 0) as amount
-        from `tabJournal Entry Account` child, `tabJournal Entry` parent where
-        parent.name = child.parent and parent.docstatus = 0 and {condition}""",
-        as_list=1,
+    query = (
+        frappe.qb.from_(child)
+        .join(parent)
+        .on(parent.name == child.parent)
+        .select(
+            Coalesce(
+                Sum(child.debit_in_account_currency - child.credit_in_account_currency),
+                0,
+            )
+        )
+        .where(parent.docstatus == 0)
     )
 
-    amount = data[0][0] if data else 0
+    query = add_budget_filters(query, args, budget, "Journal Entry", parent, child)
+    result = query.run()
+    return flt(result[0][0]) if result else 0.0
 
-    return amount
 
-
-def get_other_condition(args, budget, for_doc):
-    condition = ""
+def add_budget_filters(query, args, budget, for_doc, parent, child):
     if for_doc == "Journal Entry":
-        condition = " child.account = '%s'" % (args.account)
+        query = query.where(child.account == args.account)
     else:
-        condition = " child.expense_account = '%s'" % (
-            args.expense_account or args.account
+        query = query.where(
+            child.expense_account == (args.expense_account or args.account)
         )
 
     for row in budget.get("accounting_dimensions"):
         budget_against_field = frappe.scrub(row.accounting_dimension)
-
         if budget_against_field and args.get(budget_against_field):
-            condition += f" and child.{budget_against_field} = '{args.get(budget_against_field)}'"
+            query = query.where(
+                getattr(child, budget_against_field) == args.get(budget_against_field)
+            )
 
-    date_field = ""
+    date_field = "posting_date"
     if for_doc == "Purchase Order":
         date_field = "transaction_date"
     elif for_doc == "Material Request":
         date_field = "schedule_date"
-    else:
-        date_field = "posting_date"
 
-    condition += f""" and parent.{date_field}
-        between '{budget.start_date}' and '{budget.end_date}'
-         and parent.company = '{args.company}' """
+    query = query.where(getattr(parent, date_field) >= budget.start_date)
+    query = query.where(getattr(parent, date_field) <= budget.end_date)
+    query = query.where(parent.company == args.company)
 
-    return condition
+    return query
 
 
 def get_expense_breakup(args, currency, budget):
