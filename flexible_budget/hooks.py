@@ -1,7 +1,7 @@
 app_name = "flexible_budget"
 app_title = "Flexible Budget"
 app_publisher = "elius mgani"
-app_description = "\'Adjuest Budgets based on changes of Sales volume, Production volume or any other revenue target changes\'"
+app_description = "'Adjuest Budgets based on changes of Sales volume, Production volume or any other revenue target changes'"
 app_email = "av-dev2@aakvatech.com"
 app_license = "mit"
 
@@ -151,19 +151,19 @@ after_migrate = [
 doc_events = {
     "Purchase Order": {
         "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr"
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
     },
     "Material Request": {
         "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr"
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
     },
     "Purchase Invoice": {
         "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv"
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv",
     },
     "Journal Entry": {
         "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_jv"
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
     },
 }
 
@@ -171,11 +171,7 @@ doc_events = {
 # ---------------
 
 scheduler_events = {
-    "Cron": {
-        "30 0 * * *": [
-            "flexible_budget.flexible_budget.utils.update_revenue"
-        ]
-    }
+    "Cron": {"30 0 * * *": ["flexible_budget.flexible_budget.utils.update_revenue"]}
 }
 
 # Testing
@@ -253,4 +249,3 @@ scheduler_events = {
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-

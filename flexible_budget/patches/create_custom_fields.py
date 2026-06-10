@@ -33,7 +33,7 @@ def create_fields_from_json(custom_fields_obj):
     for custom_field in custom_fields_obj:
         if not custom_field:
             continue
-        
+
         doctype = custom_field["dt"]
         all_fields = frappe.get_meta("Custom Field").get_valid_columns()
         field_list = set(all_fields).difference(disallowed_fields)
