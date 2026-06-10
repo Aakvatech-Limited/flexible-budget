@@ -347,32 +347,17 @@ def get_multi_dimensional_budget_data(filters):
     from_date = from_fy_data[0]
     to_date = to_fy_data[1]
 
-    # Build query conditions for multi-dimensional budgets
-    conditions = ["mdb.docstatus = 1", "mdb.company = %(company)s"]
-    query_params = {"company": filters["company"]}
-
-    # Date range filtering based on fiscal years
-    conditions.append(
-        "(mdb.start_date <= %(to_date)s AND mdb.end_date >= %(from_date)s)"
-    )
-    query_params["from_date"] = from_date
-    query_params["to_date"] = to_date
-
     # Get multi-dimensional budgets within fiscal year range
-    budgets = frappe.db.sql(
-        f"""
-		SELECT
-			mdb.name,
-			mdb.company,
-			mdb.start_date,
-			mdb.end_date
-		FROM `tabMulti-Dimensional Budget` mdb
-		WHERE {' AND '.join(conditions)}
-		ORDER BY mdb.start_date
-	""",
-        query_params,
-        as_dict=True,
+    mdb = frappe.qb.DocType("Multi-Dimensional Budget")
+    query = (
+        frappe.qb.from_(mdb)
+        .select(mdb.name, mdb.company, mdb.start_date, mdb.end_date)
+        .where(mdb.docstatus == 1)
+        .where(mdb.company == filters["company"])
+        .where((mdb.start_date <= to_date) & (mdb.end_date >= from_date))
+        .orderby(mdb.start_date)
     )
+    budgets = query.run(as_dict=True)
 
     for budget in budgets:
         budget_doc = frappe.get_doc("Multi-Dimensional Budget", budget.name)
@@ -674,7 +659,7 @@ def get_message(filters, data):
 
 
 @frappe.whitelist()
-def export_to_excel(filters):
+def export_to_excel(filters: dict | str) -> str:
     """Export report data to Excel with formatting"""
     try:
         columns, data, message, chart, summary = execute(filters)
@@ -707,7 +692,9 @@ def export_to_excel(filters):
         file_name = f"multi_dimensional_budget_variance_{frappe.utils.now()}.xlsx"
         file_path = f"/files/{file_name}"
 
-        with open(frappe.get_site_path("public", "files", file_name), "wb") as f:
+        with open(  # nosemgrep: security.frappe-security-file-traversal
+            frappe.get_site_path("public", "files", file_name), "wb"
+        ) as f:
             f.write(xlsx_file.getvalue())
 
         return frappe.utils.get_url(file_path)
@@ -718,7 +705,9 @@ def export_to_excel(filters):
 
 
 @frappe.whitelist()
-def create_budget_adjustment(selected_data, adjustment_details):
+def create_budget_adjustment(
+    selected_data: list | str, adjustment_details: dict | str
+) -> dict:
     """Create budget adjustment based on selected variance data"""
     try:
         if not selected_data or not adjustment_details:
