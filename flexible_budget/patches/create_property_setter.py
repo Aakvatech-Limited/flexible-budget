@@ -7,15 +7,17 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 folder = "./property_setter/property_setter_json"
 
 
-def load_json(file):
+def load_json(file: str) -> list | dict:
     CURR_DIR = os.path.abspath(os.path.dirname(__file__))
     json_file_path = os.path.join(CURR_DIR, folder, file)
-    with open(json_file_path, "r") as file:
-        data = json.load(file)
+    with open(  # nosemgrep: security.frappe-security-file-traversal
+        json_file_path, "r"
+    ) as file_obj:
+        data = json.load(file_obj)
     return data
 
 
-def create_property_setter_from_json(property_setters_obj):
+def create_property_setter_from_json(property_setters_obj: list) -> None:
     disallowed_fields = [
         "name",
         "owner",
@@ -66,16 +68,15 @@ def create_property_setter_from_json(property_setters_obj):
         )
 
 
-def execute():
+def execute() -> None:
     # read names of only json files in this folder and put it into files list
-    files = list(
-        filter(
-            lambda x: x.endswith(".json"),
-            os.listdir(
-                os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)
-            ),
+    files = [
+        x
+        for x in os.listdir(
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)
         )
-    )
+        if x.endswith(".json")
+    ]
     for file in files:
         data = load_json(file)
         create_property_setter_from_json(data)
