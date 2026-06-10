@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -16,18 +17,22 @@ class CompanyBudgetControl(Document):
             self.target_calculation_method in ["Fixed Target", "Revenue-Based Target"]
             and not self.frequency
         ):
-            frappe.throw("Please select a <b>Frequency</b> for revenue calculations.")
+            frappe.throw(
+                _("Please select a <b>Frequency</b> for revenue calculations.")
+            )
 
     def validate_fixed_target_logic(self):
         if self.target_calculation_method == "Fixed Target":
             if not self.fixed_target_revenue_amount:
-                frappe.throw("You must set a <b>Fixed Target Revenue Amount</b>")
+                frappe.throw(_("You must set a <b>Fixed Target Revenue Amount</b>"))
 
             if (
                 self.fixed_target_revenue_amount
                 and self.fixed_target_revenue_amount < 0
             ):
-                frappe.throw("<b>Fixed Target Revenue Amount</b> cannot be Negative.")
+                frappe.throw(
+                    _("<b>Fixed Target Revenue Amount</b> cannot be Negative.")
+                )
 
     def validate_unique_company(self):
         if frappe.db.exists(
@@ -35,5 +40,7 @@ class CompanyBudgetControl(Document):
             {"company": self.company, "name": ["!=", self.name]},
         ):
             frappe.throw(
-                f"A Company Budget Control already exists for the company <b>{self.company}</b>."
+                _(
+                    "A Company Budget Control already exists for the company <b>{0}</b>."
+                ).format(self.company)
             )
