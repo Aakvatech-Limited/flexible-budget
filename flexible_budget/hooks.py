@@ -165,6 +165,10 @@ doc_events = {
         "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
         "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
     },
+    "Expense Claim": {
+        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_expense_claim",
+        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_expense_claim",
+    },
 }
 
 # Scheduled Tasks
