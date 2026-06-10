@@ -24,6 +24,9 @@
     "column_break_ynjg",
     "applicable_on_booking_actual_expenses",
     "action_if_budget_exceeded",
+    "column_break_ec",
+    "applicable_on_expense_claim",
+    "action_if_budget_exceeded_on_ec",
     "section_break_21",
     "accounting_dimensions",
     "section_break_jpfe",
@@ -137,6 +140,27 @@
       "fieldname": "action_if_budget_exceeded",
       "fieldtype": "Select",
       "label": "Action if Budget Exceeded on Actual",
+      "options": "\nStop\nWarn\nIgnore",
+      "search_index": 1
+    },
+    {
+      "default": "0",
+      "fieldname": "applicable_on_expense_claim",
+      "fieldtype": "Check",
+      "label": "Applicable on Expense Claim",
+      "search_index": 1
+    },
+    {
+      "fieldname": "column_break_ec",
+      "fieldtype": "Column Break"
+    },
+    {
+      "allow_on_submit": 1,
+      "default": "Stop",
+      "depends_on": "eval:doc.applicable_on_expense_claim == 1",
+      "fieldname": "action_if_budget_exceeded_on_ec",
+      "fieldtype": "Select",
+      "label": "Action if Budget Exceeded on EC",
       "options": "\nStop\nWarn\nIgnore",
       "search_index": 1
     },
