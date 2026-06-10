@@ -6,4 +6,4 @@ from frappe.tests.utils import FrappeTestCase
 
 
 class TestMultiDimensionalBudget(FrappeTestCase):
-	pass
+    pass
