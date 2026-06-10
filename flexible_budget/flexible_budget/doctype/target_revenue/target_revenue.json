@@ -1,156 +1,156 @@
 {
- "actions": [],
- "allow_rename": 1,
- "autoname": "naming_series:naming_series",
- "creation": "2025-03-18 15:00:14.456073",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "company",
-  "start_date",
-  "end_date",
-  "column_break_ipxo",
-  "branch",
-  "override_earned_amount",
-  "actual_earned_amount",
-  "column_break_mnfm",
-  "target_amount",
-  "earned_amount",
-  "target_percentage",
-  "section_break_gjms",
-  "naming_series",
-  "amended_from"
- ],
- "fields": [
-  {
-   "fieldname": "company",
-   "fieldtype": "Link",
-   "label": "Company",
-   "options": "Company",
-   "search_index": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "target_amount",
-   "fieldtype": "Currency",
-   "label": "Target Amount",
-   "search_index": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "depends_on": "eval:doc.target_amount > 0",
-   "fieldname": "target_percentage",
-   "fieldtype": "Percent",
-   "in_list_view": 1,
-   "label": "Target Percentage",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "column_break_mnfm",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "start_date",
-   "fieldtype": "Date",
-   "label": "Start Date",
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "end_date",
-   "fieldtype": "Date",
-   "label": "End Date",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "section_break_gjms",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "label": "Naming Series",
-   "options": "TR-.YYYY.-",
-   "search_index": 1
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Target Revenue",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "earned_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Earned Amount",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "column_break_ipxo",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "branch",
-   "fieldtype": "Link",
-   "label": "Branch",
-   "options": "Branch",
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "0",
-   "fieldname": "override_earned_amount",
-   "fieldtype": "Check",
-   "label": "Override Earned Amount",
-   "search_index": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "depends_on": "eval: doc.override_earned_amount == 1",
-   "fieldname": "actual_earned_amount",
-   "fieldtype": "Currency",
-   "label": "Actual Earned Amount",
-   "mandatory_depends_on": "eval: doc.override_earned_amount == 1",
-   "search_index": 1
-  }
- ],
- "index_web_pages_for_search": 1,
- "is_submittable": 1,
- "links": [],
- "modified": "2025-05-09 10:30:18.457054",
- "modified_by": "Administrator",
- "module": "Flexible Budget",
- "name": "Target Revenue",
- "naming_rule": "By \"Naming Series\" field",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  }
- ],
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
- "title_field": "company",
- "track_changes": 1
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "naming_series:naming_series",
+  "creation": "2025-03-18 15:00:14.456073",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "start_date",
+    "end_date",
+    "column_break_ipxo",
+    "branch",
+    "override_earned_amount",
+    "actual_earned_amount",
+    "column_break_mnfm",
+    "target_amount",
+    "earned_amount",
+    "target_percentage",
+    "section_break_gjms",
+    "naming_series",
+    "amended_from"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company",
+      "search_index": 1
+    },
+    {
+      "allow_on_submit": 1,
+      "fieldname": "target_amount",
+      "fieldtype": "Currency",
+      "label": "Target Amount",
+      "search_index": 1
+    },
+    {
+      "allow_on_submit": 1,
+      "depends_on": "eval:doc.target_amount > 0",
+      "fieldname": "target_percentage",
+      "fieldtype": "Percent",
+      "in_list_view": 1,
+      "label": "Target Percentage",
+      "read_only": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "column_break_mnfm",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "start_date",
+      "fieldtype": "Date",
+      "label": "Start Date",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "end_date",
+      "fieldtype": "Date",
+      "label": "End Date",
+      "read_only": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "section_break_gjms",
+      "fieldtype": "Section Break"
+    },
+    {
+      "fieldname": "naming_series",
+      "fieldtype": "Select",
+      "hidden": 1,
+      "label": "Naming Series",
+      "options": "TR-.YYYY.-",
+      "search_index": 1
+    },
+    {
+      "fieldname": "amended_from",
+      "fieldtype": "Link",
+      "label": "Amended From",
+      "no_copy": 1,
+      "options": "Target Revenue",
+      "print_hide": 1,
+      "read_only": 1,
+      "search_index": 1
+    },
+    {
+      "allow_on_submit": 1,
+      "fieldname": "earned_amount",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "Earned Amount",
+      "read_only": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "column_break_ipxo",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "branch",
+      "fieldtype": "Link",
+      "label": "Branch",
+      "options": "Branch",
+      "reqd": 1,
+      "search_index": 1
+    },
+    {
+      "allow_on_submit": 1,
+      "default": "0",
+      "fieldname": "override_earned_amount",
+      "fieldtype": "Check",
+      "label": "Override Earned Amount",
+      "search_index": 1
+    },
+    {
+      "allow_on_submit": 1,
+      "depends_on": "eval: doc.override_earned_amount == 1",
+      "fieldname": "actual_earned_amount",
+      "fieldtype": "Currency",
+      "label": "Actual Earned Amount",
+      "mandatory_depends_on": "eval: doc.override_earned_amount == 1",
+      "search_index": 1
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "is_submittable": 1,
+  "links": [],
+  "modified": "2025-05-09 10:30:18.457054",
+  "modified_by": "Administrator",
+  "module": "Flexible Budget",
+  "name": "Target Revenue",
+  "naming_rule": "By \"Naming Series\" field",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "title_field": "company",
+  "track_changes": 1
 }
