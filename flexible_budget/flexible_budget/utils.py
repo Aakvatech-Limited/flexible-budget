@@ -136,6 +136,9 @@ def get_grouped_item_amounts(items):
         elif item.doctype == "Journal Entry Account":
             account_field = "account"
             amount_field = "debit_in_account_currency"
+        elif item.doctype == "Expense Claim Detail":
+            account_field = "default_account"
+            amount_field = "amount"
         else:
             continue
 
@@ -270,6 +273,37 @@ def validate_budget_on_jv(doc, method):
         )
 
 
+def validate_budget_on_expense_claim(doc, method: str) -> None:
+    """Validate budget for Expense Claim."""
+    if not frappe.db.exists("DocType", "Expense Claim"):
+        return
+
+    if doc.bypass_budget_validation:
+        return
+
+    doc.budget_overview = ""
+
+    expenses = get_grouped_item_amounts(doc.expenses)
+
+    for expense in expenses:
+        args = expense.as_dict()
+        child_doctype = expense.doctype
+        is_new = True if expense.is_new() else False
+        args.update(
+            {
+                "doctype": doc.doctype,
+                "child_doctype": child_doctype,
+                "is_child_new": is_new,
+                "company": doc.company,
+                "posting_date": doc.posting_date,
+            }
+        )
+
+        validate_expense_against_budget(
+            doc, args, expense_amount=expense.amount, method=method
+        )
+
+
 def validate_expense_against_budget(doc, args, expense_amount=0, method="before_save"):
     args = frappe._dict(args)
 
@@ -282,7 +316,7 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method="before_
     # )
 
     if not args.account:
-        args.account = args.get("expense_account")
+        args.account = args.get("expense_account") or args.get("default_account")
 
     if not (args.get("account") and args.get("cost_center")) and args.item_code:
         args.cost_center, args.account = get_item_details(args)
@@ -355,6 +389,7 @@ def validate_budget_records(doc, args, budget_records, expense_amount, method):
 
         args["for_material_request"] = budget.applicable_on_material_request
         args["for_purchase_order"] = budget.applicable_on_purchase_order
+        args["for_expense_claim"] = budget.applicable_on_expense_claim
 
         if action in ("Stop", "Warn"):
             compare_expense_with_budget(
@@ -376,6 +411,9 @@ def get_actions(args, budget):
     ):
         action = budget.action_if_budget_exceeded_on_po
 
+    elif args.get("doctype") == "Expense Claim" and budget.applicable_on_expense_claim:
+        action = budget.action_if_budget_exceeded_on_ec
+
     return action
 
 
@@ -387,12 +425,14 @@ def compare_expense_with_budget(
     args.ordered_amount = get_ordered_amount(args, budget)
     args.invoice_amount = get_invoice_amount(args, budget)
     args.jv_amount = get_jv_amount(args, budget)
+    args.expense_claim_amount = get_expense_claim_amount(args, budget)
 
     amount = (
         args.get("requested_amount", 0)
         + args.get("ordered_amount", 0)
         + args.get("invoice_amount", 0)
         + args.get("jv_amount", 0)
+        + args.get("expense_claim_amount", 0)
     )
 
     total_expense = args.actual_expense + amount
@@ -556,9 +596,31 @@ def get_jv_amount(args, budget):
     return flt(result[0][0]) if result else 0.0
 
 
+def get_expense_claim_amount(args, budget) -> float:
+    if not frappe.db.exists("DocType", "Expense Claim"):
+        return 0.0
+
+    parent = frappe.qb.DocType("Expense Claim")
+    child = frappe.qb.DocType("Expense Claim Detail")
+
+    query = (
+        frappe.qb.from_(child)
+        .join(parent)
+        .on(parent.name == child.parent)
+        .select(Coalesce(Sum(child.amount), 0))
+        .where(parent.docstatus == 0)
+    )
+
+    query = add_budget_filters(query, args, budget, "Expense Claim", parent, child)
+    result = query.run()
+    return flt(result[0][0]) if result else 0.0
+
+
 def add_budget_filters(query, args, budget, for_doc, parent, child):
     if for_doc == "Journal Entry":
         query = query.where(child.account == args.account)
+    elif for_doc == "Expense Claim":
+        query = query.where(child.default_account == args.account)
     else:
         query = query.where(
             child.expense_account == (args.expense_account or args.account)
@@ -708,6 +770,33 @@ def get_expense_breakup(args, currency, budget):
         )
         + " - "
         + frappe.bold(fmt_money(args.jv_amount, currency=currency))
+        + "</li>"
+    )
+
+    expense_claim_filters = common_filters.copy()
+    if "account" in expense_claim_filters:
+        expense_claim_filters["default_account"] = expense_claim_filters.pop("account")
+
+    msg += (
+        "<li>"
+        + frappe.utils.get_link_to_report(
+            "Expense Claim",
+            label="Pending Expense Claims",
+            report_type="Report Builder",
+            doctype="Expense Claim",
+            filters=expense_claim_filters.update(
+                {
+                    "status": [["!=", "Paid"]],
+                    "posting_date": [
+                        "between",
+                        [str(budget.start_date), str(budget.end_date)],
+                    ],
+                }
+            )
+            or expense_claim_filters,
+        )
+        + " - "
+        + frappe.bold(fmt_money(args.expense_claim_amount, currency=currency))
         + "</li></ul>"
     )
 
