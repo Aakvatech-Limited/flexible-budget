@@ -41,16 +41,16 @@ class MultiDimensionalBudget(Document):
 
     def validate_required_fields(self):
         if not self.company:
-            frappe.throw("Company is required.")
+            frappe.throw(_("Company is required."))
 
         if not self.start_date:
-            frappe.throw("Start Date is required.")
+            frappe.throw(_("Start Date is required."))
 
         if not self.end_date:
-            frappe.throw("End Date is required.")
+            frappe.throw(_("End Date is required."))
 
     @frappe.whitelist()
-    def set_end_date_from_frequency(self, settings=None):
+    def set_end_date_from_frequency(self, settings: dict | None = None):
         if not settings:
             settings = frappe.db.get_value(
                 "Company Budget Control",
@@ -145,7 +145,7 @@ class MultiDimensionalBudget(Document):
             prev_target_end_date = add_days(start_date, -1)
 
         else:
-            frappe.throw("Invalid frequency. Please select a valid frequency.")
+            frappe.throw(_("Invalid frequency. Please select a valid frequency."))
 
         return prev_target_start_date, prev_target_end_date
 
@@ -188,10 +188,10 @@ class MultiDimensionalBudget(Document):
 
             if current_set == other_set:
                 frappe.throw(
-                    (
+                    _(
                         "A Multi-Dimensional Budget with the same accounting dimension composition already exists for this period (Overlap with: <a href='/app/multi-dimensional-budget/{0}'>{0}</a>)"
                     ).format(other.name),
-                    title=("Duplicate Budget Not Allowed"),
+                    title=_("Duplicate Budget Not Allowed"),
                 )
 
     def validate_accounts(self):
@@ -206,22 +206,22 @@ class MultiDimensionalBudget(Document):
                 )
                 if account_details.is_group:
                     frappe.throw(
-                        _(
-                            f"Budget cannot be assigned against Group Account {d.account}"
+                        _("Budget cannot be assigned against Group Account {0}").format(
+                            d.account
                         )
                     )
 
                 elif account_details.company != self.company:
                     frappe.throw(
-                        _(
-                            f"Account {d.account} does not belongs to company {self.company}"
+                        _("Account {0} does not belong to company {1}").format(
+                            d.account, self.company
                         )
                     )
                 elif account_details.report_type != "Profit and Loss":
                     frappe.throw(
                         _(
-                            f"Budget cannot be assigned against {d.account}, as it's not an Income or Expense account"
-                        )
+                            "Budget cannot be assigned against {0}, as it's not an Income or Expense account"
+                        ).format(d.account)
                     )
 
                 if d.account in account_list:
@@ -242,7 +242,9 @@ class MultiDimensionalBudget(Document):
                 dimensions.append(row.accounting_dimension)
             else:
                 frappe.throw(
-                    f"Duplicate accounting dimension found: {row.accounting_dimension}"
+                    _("Duplicate accounting dimension found: {0}").format(
+                        row.accounting_dimension
+                    )
                 )
 
             if frappe.get_meta(row.accounting_dimension).get_field("company"):
@@ -255,8 +257,8 @@ class MultiDimensionalBudget(Document):
                     if company != self.company:
                         frappe.throw(
                             _(
-                                f"Accounting Dimension {row.accounting_dimension_name} does not belong to company {self.company}"
-                            )
+                                "Accounting Dimension {0} does not belong to company {1}"
+                            ).format(row.accounting_dimension_name, self.company)
                         )
 
     def validate_branch_dimension(self):
@@ -276,7 +278,7 @@ class MultiDimensionalBudget(Document):
             )
 
     @frappe.whitelist()
-    def calculate_total_amount(self, caller=None):
+    def calculate_total_amount(self, caller: str | None = None) -> float:
         """Calculate the total budget amount from all accounts in the child table."""
 
         total_amount = 0.0

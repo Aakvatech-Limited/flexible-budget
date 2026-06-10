@@ -9,7 +9,7 @@ from frappe.utils import add_days, add_months, getdate
 from flexible_budget.flexible_budget.utils import update_revenue
 
 
-class TargetRevenue(Document):
+class TargetRevenue(Document):  # nosemgrep: frappe-modifying-but-not-comitting-other-method  # fmt: skip
     def before_insert(self):
         settings = frappe.db.get_value(
             "Company Budget Control",
@@ -25,7 +25,7 @@ class TargetRevenue(Document):
         self.calculate_target_percentage()
 
     def on_update_after_submit(self):
-        self.calculate_target_percentage()
+        self.calculate_target_percentage()  # nosemgrep: frappe-modifying-but-not-comitting-other-method
         self.db_update()
 
     def on_submit(self):
@@ -80,7 +80,7 @@ class TargetRevenue(Document):
                 ) * 100
 
     @frappe.whitelist()
-    def set_end_date_from_frequency(self, settings=None):
+    def set_end_date_from_frequency(self, settings: dict | None = None):
         if not settings:
             settings = frappe.db.get_value(
                 "Company Budget Control",
@@ -109,7 +109,7 @@ class TargetRevenue(Document):
 
         return self.end_date
 
-    def set_target_amount_from_settings(self, settings):
+    def set_target_amount_from_settings(self, settings: dict | None) -> None:
         if not settings:
             return
 
