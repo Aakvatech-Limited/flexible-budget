@@ -282,19 +282,19 @@ def get_target_revenue_data(company, branch, start_date, end_date, frequency):
     # Find Target Revenue using the utils.py approach
     target_revenue = frappe.db.sql(
         """
-		SELECT
-			target_amount,
-			earned_amount,
-			target_percentage
-		FROM `tabTarget Revenue`
-		WHERE company = %(company)s
-			AND branch = %(branch)s
-			AND start_date <= %(prev_date)s
-			AND end_date >= %(prev_date)s
-			AND docstatus = 1
-		ORDER BY creation DESC
-		LIMIT 1
-	""",
+    	SELECT
+    		target_amount,
+    		earned_amount,
+    		target_percentage
+    	FROM `tabTarget Revenue`
+    	WHERE company = %(company)s
+    		AND branch = %(branch)s
+    		AND start_date <= %(prev_date)s
+    		AND end_date >= %(prev_date)s
+    		AND docstatus = 1
+    	ORDER BY creation DESC
+    	LIMIT 1
+    """,
         {"company": company, "branch": branch, "prev_date": prev_date},
         as_dict=True,
     )
