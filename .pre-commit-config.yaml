@@ -1,4 +1,4 @@
-exclude: 'node_modules|.git'
+exclude: 'node_modules'
 default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
 fail_fast: false
@@ -33,14 +33,21 @@ repos:
       - id: prettier
         types_or: [javascript, json, markdown]
 
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+
   - repo: local
     hooks:
       - id: semgrep
         name: semgrep
-        entry: /home/elius-dev/.local/bin/semgrep --config /home/elius-dev/projects/semgrep-rules/rules --config r/python.lang.correctness --error
+        entry: semgrep --config /home/dev/frappe-semgrep-rules/rules --config r/python.lang.correctness --error --skip-unknown-extensions
         language: system
         types_or: [python, javascript]
         pass_filenames: true
+        require_serial: true
 
       - id: commit-msg-length
         name: check commit message length
