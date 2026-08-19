@@ -1,13 +1,14 @@
 import copy
+
 import frappe
-from frappe import _
-from erpnext.accounts.utils import get_fiscal_year
-from frappe.utils import flt, add_days, fmt_money
-from erpnext.accounts.doctype.budget.budget import get_item_details, BudgetError
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
     get_accounting_dimensions,
 )
+from erpnext.accounts.doctype.budget.budget import BudgetError, get_item_details
+from erpnext.accounts.utils import get_fiscal_year
+from frappe import _
 from frappe.query_builder.functions import Coalesce, Sum
+from frappe.utils import add_days, flt, fmt_money
 
 
 def update_revenue(revenue_doc=None):
@@ -17,9 +18,7 @@ def update_revenue(revenue_doc=None):
 
         get_revenue_per_target_doc(revenue_doc)
     else:
-        target_revenues = frappe.db.get_all(
-            "Target Revenue", filters={"docstatus": 1}, pluck="name"
-        )
+        target_revenues = frappe.db.get_all("Target Revenue", filters={"docstatus": 1}, pluck="name")
 
         for revenue_id in target_revenues:
             revenue_doc = frappe.get_doc("Target Revenue", revenue_id)
@@ -30,9 +29,7 @@ def update_revenue(revenue_doc=None):
 
 
 def get_revenue_per_target_doc(doc):
-    income_account = frappe.get_cached_value(
-        "Company Budget Control", doc.company, "group_income_account"
-    )
+    income_account = frappe.get_cached_value("Company Budget Control", doc.company, "group_income_account")
     if not income_account:
         return
 
@@ -117,9 +114,7 @@ def get_grouped_item_amounts(items):
     """
 
     grouped_data = {}
-    accounting_dimensions = (
-        get_accounting_dimensions()
-    )  # e.g., ['branch', 'department']
+    accounting_dimensions = get_accounting_dimensions()  # e.g., ['branch', 'department']
     extra_dimensions = ["cost_center", "project"]
     all_dimensions = accounting_dimensions + extra_dimensions
 
@@ -186,11 +181,7 @@ def validate_budget_on_po_and_mr(doc, method):
                 "child_doctype": child_doctype,
                 "is_child_new": is_new,
                 "company": doc.company,
-                "posting_date": (
-                    doc.schedule_date
-                    if doc.doctype == "Material Request"
-                    else doc.transaction_date
-                ),
+                "posting_date": (doc.schedule_date if doc.doctype == "Material Request" else doc.transaction_date),
             }
         )
 
@@ -236,9 +227,7 @@ def validate_budget_on_pinv(doc, method):
             }
         )
 
-        validate_expense_against_budget(
-            doc, args, expense_amount=item.base_amount, method=method
-        )
+        validate_expense_against_budget(doc, args, expense_amount=item.base_amount, method=method)
 
 
 def validate_budget_on_jv(doc, method):
@@ -268,9 +257,7 @@ def validate_budget_on_jv(doc, method):
             }
         )
 
-        validate_expense_against_budget(
-            doc, args, expense_amount=account.debit_in_account_currency, method=method
-        )
+        validate_expense_against_budget(doc, args, expense_amount=account.debit_in_account_currency, method=method)
 
 
 def validate_budget_on_expense_claim(doc, method: str) -> None:
@@ -299,18 +286,14 @@ def validate_budget_on_expense_claim(doc, method: str) -> None:
             }
         )
 
-        validate_expense_against_budget(
-            doc, args, expense_amount=expense.amount, method=method
-        )
+        validate_expense_against_budget(doc, args, expense_amount=expense.amount, method=method)
 
 
 def validate_expense_against_budget(doc, args, expense_amount=0, method="before_save"):
     args = frappe._dict(args)
 
     if args.get("company") and not args.fiscal_year:
-        args.fiscal_year = get_fiscal_year(
-            args.get("posting_date"), company=args.get("company")
-        )[0]
+        args.fiscal_year = get_fiscal_year(args.get("posting_date"), company=args.get("company"))[0]
         # frappe.flags.exception_approver_role = frappe.get_cached_value(
     # 	"Company", args.get("company"), "exception_budget_approver_role"
     # )
@@ -321,9 +304,7 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method="before_
     if not (args.get("account") and args.get("cost_center")) and args.item_code:
         args.cost_center, args.account = get_item_details(args)
 
-    if not args.account or (
-        frappe.get_cached_value("Account", args.account, "root_type") != "Expense"
-    ):
+    if not args.account or (frappe.get_cached_value("Account", args.account, "root_type") != "Expense"):
         return
 
     budgets = frappe.db.get_all(
@@ -354,8 +335,7 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method="before_
 
             if (
                 args.get(frappe.scrub(row.accounting_dimension))
-                and args.get(frappe.scrub(row.accounting_dimension))
-                == row.accounting_dimension_name
+                and args.get(frappe.scrub(row.accounting_dimension)) == row.accounting_dimension_name
             ):
                 count += 1
 
@@ -369,9 +349,7 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method="before_
                     valid_budget["target_percentage"] = get_target_revenue_percent(
                         args.company, args.posting_date, branch_name
                     )
-                    valid_budget["allowed_amount"] = row.budget_amount * (
-                        valid_budget["target_percentage"] / 100
-                    )
+                    valid_budget["allowed_amount"] = row.budget_amount * (valid_budget["target_percentage"] / 100)
 
                     break
 
@@ -392,23 +370,16 @@ def validate_budget_records(doc, args, budget_records, expense_amount, method):
         args["for_expense_claim"] = budget.applicable_on_expense_claim
 
         if action in ("Stop", "Warn"):
-            compare_expense_with_budget(
-                doc, args, action, budget, expense_amount, method
-            )
+            compare_expense_with_budget(doc, args, action, budget, expense_amount, method)
 
 
 def get_actions(args, budget):
     action = budget.action_if_budget_exceeded
 
-    if (
-        args.get("doctype") == "Material Request"
-        and budget.applicable_on_material_request
-    ):
+    if args.get("doctype") == "Material Request" and budget.applicable_on_material_request:
         action = budget.action_if_budget_exceeded_on_mr
 
-    elif (
-        args.get("doctype") == "Purchase Order" and budget.applicable_on_purchase_order
-    ):
+    elif args.get("doctype") == "Purchase Order" and budget.applicable_on_purchase_order:
         action = budget.action_if_budget_exceeded_on_po
 
     elif args.get("doctype") == "Expense Claim" and budget.applicable_on_expense_claim:
@@ -417,9 +388,7 @@ def get_actions(args, budget):
     return action
 
 
-def compare_expense_with_budget(
-    doc, args, action, budget, amount=0, method="before_save"
-):
+def compare_expense_with_budget(doc, args, action, budget, amount=0, method="before_save"):
     args.actual_expense = get_actual_expense(args, budget)
     args.requested_amount = get_requested_amount(args, budget)
     args.ordered_amount = get_ordered_amount(args, budget)
@@ -457,10 +426,8 @@ def compare_expense_with_budget(
         )
         msg += get_expense_breakup(args, currency, budget)
 
-        if (
-            frappe.flags.exception_approver_role
-            and frappe.flags.exception_approver_role
-            in frappe.get_roles(frappe.session.user)
+        if frappe.flags.exception_approver_role and frappe.flags.exception_approver_role in frappe.get_roles(
+            frappe.session.user
         ):
             action = "Warn"
 
@@ -486,9 +453,7 @@ def get_actual_expense(args, budget):
         dim_value = dimension.accounting_dimension_name
         args[dim_key] = dim_value
 
-        if frappe.get_cached_value(
-            "DocType", dimension.accounting_dimension, "is_tree"
-        ):
+        if frappe.get_cached_value("DocType", dimension.accounting_dimension, "is_tree"):
             lft_key = f"{dim_key}_lft"
             rgt_key = f"{dim_key}_rgt"
             args[lft_key], args[rgt_key] = frappe.get_cached_value(
@@ -622,16 +587,12 @@ def add_budget_filters(query, args, budget, for_doc, parent, child):
     elif for_doc == "Expense Claim":
         query = query.where(child.default_account == args.account)
     else:
-        query = query.where(
-            child.expense_account == (args.expense_account or args.account)
-        )
+        query = query.where(child.expense_account == (args.expense_account or args.account))
 
     for row in budget.get("accounting_dimensions"):
         budget_against_field = frappe.scrub(row.accounting_dimension)
         if budget_against_field and args.get(budget_against_field):
-            query = query.where(
-                getattr(child, budget_against_field) == args.get(budget_against_field)
-            )
+            query = query.where(getattr(child, budget_against_field) == args.get(budget_against_field))
 
     date_field = "posting_date"
     if for_doc == "Purchase Order":
@@ -806,9 +767,7 @@ def get_expense_breakup(args, currency, budget):
 def get_target_revenue_percent(company, posting_date, branch_name):
     """Get target revenue percentage for Multi-Dimensional Budget."""
 
-    frequency = frappe.db.get_value(
-        "Company Budget Control", {"company": company}, ["frequency"]
-    )
+    frequency = frappe.db.get_value("Company Budget Control", {"company": company}, ["frequency"])
 
     frequency = (frequency or "").strip().lower()
 
@@ -853,7 +812,9 @@ def update_budget_values(doc, args, budget, total_expense, currency):
     msg = f"{dimension_str}:<ul style='list-style-type:disc'>"
     msg += f"<li>Budget Amount: {frappe.bold(fmt_money(budget.allowed_amount, currency=currency))}</li>"
     msg += f"<li>Total Expense: {frappe.bold(fmt_money(total_expense, currency=currency))}</li>"
-    msg += f"<li>Remaining Budget: {frappe.bold(fmt_money(budget.allowed_amount - total_expense, currency=currency))}</li>"
+    msg += (
+        f"<li>Remaining Budget: {frappe.bold(fmt_money(budget.allowed_amount - total_expense, currency=currency))}</li>"
+    )
     msg += "</ul><hr>"
 
     doc.budget_overview = budget_overview + msg
