@@ -13,34 +13,20 @@ class CompanyBudgetControl(Document):
         self.validate_unique_company()
 
     def validate_required_fields(self):
-        if (
-            self.target_calculation_method in ["Fixed Target", "Revenue-Based Target"]
-            and not self.frequency
-        ):
-            frappe.throw(
-                _("Please select a <b>Frequency</b> for revenue calculations.")
-            )
+        if self.target_calculation_method in ["Fixed Target", "Revenue-Based Target"] and not self.frequency:
+            frappe.throw(_("Please select a <b>Frequency</b> for revenue calculations."))
 
     def validate_fixed_target_logic(self):
         if self.target_calculation_method == "Fixed Target":
             if not self.fixed_target_revenue_amount:
                 frappe.throw(_("You must set a <b>Fixed Target Revenue Amount</b>"))
 
-            if (
-                self.fixed_target_revenue_amount
-                and self.fixed_target_revenue_amount < 0
-            ):
-                frappe.throw(
-                    _("<b>Fixed Target Revenue Amount</b> cannot be Negative.")
-                )
+            if self.fixed_target_revenue_amount and self.fixed_target_revenue_amount < 0:
+                frappe.throw(_("<b>Fixed Target Revenue Amount</b> cannot be Negative."))
 
     def validate_unique_company(self):
         if frappe.db.exists(
             "Company Budget Control",
             {"company": self.company, "name": ["!=", self.name]},
         ):
-            frappe.throw(
-                _(
-                    "A Company Budget Control already exists for the company <b>{0}</b>."
-                ).format(self.company)
-            )
+            frappe.throw(_("A Company Budget Control already exists for the company <b>{0}</b>.").format(self.company))
