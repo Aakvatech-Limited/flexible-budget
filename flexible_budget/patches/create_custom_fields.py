@@ -12,7 +12,7 @@ def load_json(file: str) -> list | dict:
     json_file_path = os.path.join(CURR_DIR, folder, file)
     # TODO do not load the file if already applied
     with open(  # nosemgrep: security.frappe-security-file-traversal
-        json_file_path, "r"
+        json_file_path
     ) as file_obj:
         data = json.load(file_obj)
     return data
@@ -55,11 +55,7 @@ def create_fields_from_json(custom_fields_obj: list) -> None:
 def execute() -> None:
     # read names of only json files in this folder and put it into files list
     files = [
-        x
-        for x in os.listdir(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)
-        )
-        if x.endswith(".json")
+        x for x in os.listdir(os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)) if x.endswith(".json")
     ]
     for file in files:
         data = load_json(file)
@@ -73,10 +69,6 @@ def export_custom_fields(docnames: list | str) -> str:
 
     for docname in docnames:
         doc = frappe.get_doc("Custom Field", docname)
-        custom_fields.append(
-            doc.as_dict(
-                convert_dates_to_str=True, no_default_fields=True, no_nulls=True
-            )
-        )
+        custom_fields.append(doc.as_dict(convert_dates_to_str=True, no_default_fields=True, no_nulls=True))
 
     return str(custom_fields)
