@@ -1,8 +1,10 @@
 app_name = "flexible_budget"
 app_title = "Flexible Budget"
-app_publisher = "elius mgani"
-app_description = "'Adjuest Budgets based on changes of Sales volume, Production volume or any other revenue target changes'"
-app_email = "av-dev2@aakvatech.com"
+app_publisher = "Aakvatech Limited"
+app_description = (
+    "'Adjuest Budgets based on changes of Sales volume, Production volume or any other revenue target changes'"
+)
+app_email = "info@aakvatech.com"
 app_license = "mit"
 
 # Apps
@@ -174,9 +176,7 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-scheduler_events = {
-    "Cron": {"30 0 * * *": ["flexible_budget.flexible_budget.utils.update_revenue"]}
-}
+scheduler_events = {"Cron": {"30 0 * * *": ["flexible_budget.flexible_budget.utils.update_revenue"]}}
 
 # Testing
 # -------
