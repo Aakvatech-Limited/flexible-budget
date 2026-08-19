@@ -2,7 +2,7 @@ app_name = "flexible_budget"
 app_title = "Flexible Budget"
 app_publisher = "Aakvatech Limited"
 app_description = (
-    "'Adjuest Budgets based on changes of Sales volume, Production volume or any other revenue target changes'"
+	"'Adjuest Budgets based on changes of Sales volume, Production volume or any other revenue target changes'"
 )
 app_email = "info@aakvatech.com"
 app_license = "mit"
@@ -49,8 +49,8 @@ app_license = "mit"
 
 
 doctype_list_js = {
-    "Custom Field": "flexible_budget/patches/custom_field.js",
-    "Property Setter": "flexible_budget/patches/property_setter.js",
+	"Custom Field": "flexible_budget/patches/custom_field.js",
+	"Property Setter": "flexible_budget/patches/property_setter.js",
 }
 
 
@@ -95,8 +95,8 @@ doctype_list_js = {
 # after_install = "flexible_budget.install.after_install"
 
 after_migrate = [
-    "flexible_budget.patches.create_custom_fields.execute",
-    "flexible_budget.patches.create_property_setter.execute",
+	"flexible_budget.patches.create_custom_fields.execute",
+	"flexible_budget.patches.create_property_setter.execute",
 ]
 
 # Uninstallation
@@ -151,26 +151,26 @@ after_migrate = [
 # ---------------
 # Hook on document methods and events
 doc_events = {
-    "Purchase Order": {
-        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
-    },
-    "Material Request": {
-        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
-    },
-    "Purchase Invoice": {
-        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv",
-    },
-    "Journal Entry": {
-        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
-    },
-    "Expense Claim": {
-        "before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_expense_claim",
-        "on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_expense_claim",
-    },
+	"Purchase Order": {
+		"before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
+		"on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
+	},
+	"Material Request": {
+		"before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
+		"on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_po_and_mr",
+	},
+	"Purchase Invoice": {
+		"before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv",
+		"on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_pinv",
+	},
+	"Journal Entry": {
+		"before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
+		"on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_jv",
+	},
+	"Expense Claim": {
+		"before_save": "flexible_budget.flexible_budget.utils.validate_budget_on_expense_claim",
+		"on_submit": "flexible_budget.flexible_budget.utils.validate_budget_on_expense_claim",
+	},
 }
 
 # Scheduled Tasks
