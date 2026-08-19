@@ -1,15 +1,17 @@
 # Copyright (c) 2025, elius mgani and contributors
 # For license information, please see license.txt
 
+import calendar
+
 import frappe
-from frappe import _
-from frappe.utils import flt, getdate, add_days
-from erpnext.accounts.utils import get_fiscal_year
+from dateutil.relativedelta import relativedelta
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
     get_accounting_dimensions,
 )
-from dateutil.relativedelta import relativedelta
-import calendar
+from erpnext.accounts.utils import get_fiscal_year
+from frappe import _
+from frappe.utils import add_days, flt, getdate
+
 from flexible_budget.flexible_budget.utils import get_actual_expense
 
 
@@ -79,9 +81,7 @@ def get_columns(filters):
         )
 
     # Add month column
-    columns.append(
-        {"label": _("Month"), "fieldname": "month", "fieldtype": "Data", "width": 100}
-    )
+    columns.append({"label": _("Month"), "fieldname": "month", "fieldtype": "Data", "width": 100})
 
     # Add budget analysis columns
     columns.extend(
@@ -178,14 +178,8 @@ def apply_additional_filters(data, filters):
                 month_end = getdate(month_end)
 
                 # Check if month overlaps with filter date range
-                filter_from_date = (
-                    getdate(filters.get("from_date"))
-                    if filters.get("from_date")
-                    else None
-                )
-                filter_to_date = (
-                    getdate(filters.get("to_date")) if filters.get("to_date") else None
-                )
+                filter_from_date = getdate(filters.get("from_date")) if filters.get("from_date") else None
+                filter_to_date = getdate(filters.get("to_date")) if filters.get("to_date") else None
 
                 # Skip if month is completely before from_date
                 if filter_from_date and month_end < filter_from_date:
@@ -199,9 +193,7 @@ def apply_additional_filters(data, filters):
             continue
 
         # Filter by cost center
-        if filters.get("cost_center") and row.get("cost_center") not in filters.get(
-            "cost_center"
-        ):
+        if filters.get("cost_center") and row.get("cost_center") not in filters.get("cost_center"):
             continue
 
         # Filter by project
@@ -213,9 +205,7 @@ def apply_additional_filters(data, filters):
             continue
 
         # Filter by department
-        if filters.get("department") and row.get("department") not in filters.get(
-            "department"
-        ):
+        if filters.get("department") and row.get("department") not in filters.get("department"):
             continue
 
         filtered_data.append(row)
@@ -255,9 +245,7 @@ def get_target_revenue_data(company, branch, start_date, end_date, frequency):
     """Get Target Revenue data matching the frequency and date range using utils.py methodology"""
 
     if not frequency:
-        frequency = frappe.db.get_value(
-            "Company Budget Control", {"company": company}, "frequency"
-        )
+        frequency = frappe.db.get_value("Company Budget Control", {"company": company}, "frequency")
         frequency = (frequency or "").strip().lower()
 
     # Calculate days difference based on frequency (same as utils.py)
@@ -282,18 +270,18 @@ def get_target_revenue_data(company, branch, start_date, end_date, frequency):
     # Find Target Revenue using the utils.py approach
     target_revenue = frappe.db.sql(
         """
-    	SELECT
-    		target_amount,
-    		earned_amount,
-    		target_percentage
-    	FROM `tabTarget Revenue`
-    	WHERE company = %(company)s
-    		AND branch = %(branch)s
-    		AND start_date <= %(prev_date)s
-    		AND end_date >= %(prev_date)s
-    		AND docstatus = 1
-    	ORDER BY creation DESC
-    	LIMIT 1
+        SELECT
+            target_amount,
+            earned_amount,
+            target_percentage
+        FROM `tabTarget Revenue`
+        WHERE company = %(company)s
+            AND branch = %(branch)s
+            AND start_date <= %(prev_date)s
+            AND end_date >= %(prev_date)s
+            AND docstatus = 1
+        ORDER BY creation DESC
+        LIMIT 1
     """,
         {"company": company, "branch": branch, "prev_date": prev_date},
         as_dict=True,
@@ -305,19 +293,19 @@ def get_target_revenue_data(company, branch, start_date, end_date, frequency):
     # Alternative: Try direct period matching as fallback
     target_revenue = frappe.db.sql(
         """
-		SELECT
-			target_amount,
-			earned_amount,
-			target_percentage
-		FROM `tabTarget Revenue`
-		WHERE company = %(company)s
-			AND branch = %(branch)s
-			AND start_date <= %(start_date)s
-			AND end_date >= %(start_date)s
-			AND docstatus = 1
-		ORDER BY creation DESC
-		LIMIT 1
-	""",
+        SELECT
+            target_amount,
+            earned_amount,
+            target_percentage
+        FROM `tabTarget Revenue`
+        WHERE company = %(company)s
+            AND branch = %(branch)s
+            AND start_date <= %(start_date)s
+            AND end_date >= %(start_date)s
+            AND docstatus = 1
+        ORDER BY creation DESC
+        LIMIT 1
+    """,
         {"company": company, "branch": branch, "start_date": start_date},
         as_dict=True,
     )
@@ -334,12 +322,8 @@ def get_multi_dimensional_budget_data(filters):
     data = []
 
     # Get fiscal year date ranges
-    from_fy_data = frappe.db.get_value(
-        "Fiscal Year", filters["from_fiscal_year"], ["year_start_date", "year_end_date"]
-    )
-    to_fy_data = frappe.db.get_value(
-        "Fiscal Year", filters["to_fiscal_year"], ["year_start_date", "year_end_date"]
-    )
+    from_fy_data = frappe.db.get_value("Fiscal Year", filters["from_fiscal_year"], ["year_start_date", "year_end_date"])
+    to_fy_data = frappe.db.get_value("Fiscal Year", filters["to_fiscal_year"], ["year_start_date", "year_end_date"])
 
     if not from_fy_data or not to_fy_data:
         frappe.throw(_("Invalid fiscal year selection"))
@@ -365,11 +349,7 @@ def get_multi_dimensional_budget_data(filters):
         # Apply account filter at budget level if specified
         budget_accounts = budget_doc.accounts
         if filters.get("account"):
-            budget_accounts = [
-                acc
-                for acc in budget_doc.accounts
-                if acc.account in filters.get("account")
-            ]
+            budget_accounts = [acc for acc in budget_doc.accounts if acc.account in filters.get("account")]
 
         # Determine frequency for Target Revenue matching
         frequency = determine_frequency_from_dates(budget.start_date, budget.end_date)
@@ -390,17 +370,9 @@ def get_multi_dimensional_budget_data(filters):
                 }
 
                 # Calculate monthly budget amount (proportional)
-                total_days = (
-                    getdate(budget.end_date) - getdate(budget.start_date)
-                ).days + 1
-                month_days = (
-                    getdate(month_data["end_date"]) - getdate(month_data["start_date"])
-                ).days + 1
-                monthly_budget = (
-                    (account_row.budget_amount * month_days) / total_days
-                    if total_days > 0
-                    else 0
-                )
+                total_days = (getdate(budget.end_date) - getdate(budget.start_date)).days + 1
+                month_days = (getdate(month_data["end_date"]) - getdate(month_data["start_date"])).days + 1
+                monthly_budget = (account_row.budget_amount * month_days) / total_days if total_days > 0 else 0
                 row["budget_amount"] = monthly_budget
 
                 # Add dimension data and build filters
@@ -411,9 +383,7 @@ def get_multi_dimensional_budget_data(filters):
                 for dim_row in budget_doc.accounting_dimensions:
                     dimension_key = frappe.scrub(dim_row.accounting_dimension).lower()
                     row[dimension_key] = dim_row.accounting_dimension_name
-                    dimension_filters[frappe.scrub(dim_row.accounting_dimension)] = (
-                        dim_row.accounting_dimension_name
-                    )
+                    dimension_filters[frappe.scrub(dim_row.accounting_dimension)] = dim_row.accounting_dimension_name
 
                     # Store branch value for Target Revenue lookup
                     if dim_row.accounting_dimension.lower() == "branch":
@@ -421,11 +391,7 @@ def get_multi_dimensional_budget_data(filters):
 
                     # Apply dimension filters from report filters
                     filter_key = dimension_key
-                    if filters.get(
-                        filter_key
-                    ) and dim_row.accounting_dimension_name not in filters.get(
-                        filter_key
-                    ):
+                    if filters.get(filter_key) and dim_row.accounting_dimension_name not in filters.get(filter_key):
                         should_include_row = False
                         break
 
@@ -448,9 +414,7 @@ def get_multi_dimensional_budget_data(filters):
 
                 # Calculate allowed amount
                 allowed_amount = (
-                    monthly_budget * (row["target_percentage"] / 100)
-                    if row["target_percentage"]
-                    else monthly_budget
+                    monthly_budget * (row["target_percentage"] / 100) if row["target_percentage"] else monthly_budget
                 )
                 row["allowed_amount"] = allowed_amount
 
@@ -460,12 +424,8 @@ def get_multi_dimensional_budget_data(filters):
                     {
                         "account": account_row.account,
                         "company": filters["company"],
-                        "posting_date": month_data[
-                            "end_date"
-                        ],  # Use end date for fiscal year calculation
-                        "fiscal_year": get_fiscal_year(
-                            month_data["end_date"], company=filters["company"]
-                        )[0],
+                        "posting_date": month_data["end_date"],  # Use end date for fiscal year calculation
+                        "fiscal_year": get_fiscal_year(month_data["end_date"], company=filters["company"])[0],
                     }
                 )
 
@@ -501,9 +461,7 @@ def get_multi_dimensional_budget_data(filters):
                 # Calculate percentages
                 if allowed_amount:
                     row["utilization_percent"] = (actual_amount / allowed_amount) * 100
-                    row["variance_percent"] = (
-                        (allowed_amount - actual_amount) / allowed_amount
-                    ) * 100
+                    row["variance_percent"] = ((allowed_amount - actual_amount) / allowed_amount) * 100
                 else:
                     row["utilization_percent"] = 0
                     row["variance_percent"] = 0
@@ -530,12 +488,8 @@ def get_months_between_dates(start_date, end_date):
         actual_end = min(month_end, end_date)
 
         if actual_start <= actual_end:
-            month_name = (
-                calendar.month_name[current_date.month] + " " + str(current_date.year)
-            )
-            sort_key = (
-                current_date.year * 100 + current_date.month
-            )  # For proper chronological sorting
+            month_name = calendar.month_name[current_date.month] + " " + str(current_date.year)
+            sort_key = current_date.year * 100 + current_date.month  # For proper chronological sorting
             months.append(
                 {
                     "month_name": month_name,
@@ -651,9 +605,9 @@ def get_message(filters, data):
     total_entries = len(data)
     unique_budgets = len(set(row.get("budget_name") for row in data))
 
-    message = _(
-        "Report includes {0} entries from {1} Multi-Dimensional Budget(s)."
-    ).format(total_entries, unique_budgets)
+    message = _("Report includes {0} entries from {1} Multi-Dimensional Budget(s).").format(
+        total_entries, unique_budgets
+    )
 
     return message
 
@@ -705,9 +659,7 @@ def export_to_excel(filters: dict | str) -> str:
 
 
 @frappe.whitelist()
-def create_budget_adjustment(
-    selected_data: list | str, adjustment_details: dict | str
-) -> dict:
+def create_budget_adjustment(selected_data: list | str, adjustment_details: dict | str) -> dict:
     """Create budget adjustment based on selected variance data"""
     try:
         if not selected_data or not adjustment_details:
