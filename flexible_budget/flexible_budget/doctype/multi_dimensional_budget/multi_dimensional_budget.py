@@ -1,11 +1,12 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from datetime import timedelta
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import getdate, add_days, add_months
-from datetime import timedelta
+from frappe.utils import add_days, add_months, getdate
 
 
 class MultiDimensionalBudget(Document):
@@ -62,9 +63,7 @@ class MultiDimensionalBudget(Document):
         if self.start_date:
             start_date = getdate(self.start_date)
 
-            frequency = (
-                (settings.get("frequency") or "").strip().lower() if settings else ""
-            )
+            frequency = (settings.get("frequency") or "").strip().lower() if settings else ""
 
             if frequency == "weekly":
                 self.end_date = add_days(start_date, 6)
@@ -96,24 +95,12 @@ class MultiDimensionalBudget(Document):
             )
 
         if settings:
-            self.applicable_on_material_request = settings.get(
-                "applicable_on_material_request"
-            )
-            self.action_if_budget_exceeded_on_mr = settings.get(
-                "action_if_budget_exceeded_on_mr"
-            )
-            self.applicable_on_purchase_order = settings.get(
-                "applicable_on_purchase_order"
-            )
-            self.action_if_budget_exceeded_on_po = settings.get(
-                "action_if_budget_exceeded_on_po"
-            )
-            self.applicable_on_booking_actual_expenses = settings.get(
-                "applicable_on_booking_actual_expenses"
-            )
-            self.action_if_budget_exceeded = settings.get(
-                "action_if_budget_exceeded_on_actual"
-            )
+            self.applicable_on_material_request = settings.get("applicable_on_material_request")
+            self.action_if_budget_exceeded_on_mr = settings.get("action_if_budget_exceeded_on_mr")
+            self.applicable_on_purchase_order = settings.get("applicable_on_purchase_order")
+            self.action_if_budget_exceeded_on_po = settings.get("action_if_budget_exceeded_on_po")
+            self.applicable_on_booking_actual_expenses = settings.get("applicable_on_booking_actual_expenses")
+            self.action_if_budget_exceeded = settings.get("action_if_budget_exceeded_on_actual")
 
     def get_target_dates(self, settings):
         if not settings.frequency:
@@ -161,9 +148,7 @@ class MultiDimensionalBudget(Document):
         if self.name:
             filters["name"] = ["!=", self.name]
 
-        existing_budgets = frappe.db.get_all(
-            "Multi-Dimensional Budget", filters=filters, fields=["name"]
-        )
+        existing_budgets = frappe.db.get_all("Multi-Dimensional Budget", filters=filters, fields=["name"])
 
         if len(existing_budgets) == 0:
             return
@@ -205,31 +190,19 @@ class MultiDimensionalBudget(Document):
                     as_dict=1,
                 )
                 if account_details.is_group:
-                    frappe.throw(
-                        _("Budget cannot be assigned against Group Account {0}").format(
-                            d.account
-                        )
-                    )
+                    frappe.throw(_("Budget cannot be assigned against Group Account {0}").format(d.account))
 
                 elif account_details.company != self.company:
-                    frappe.throw(
-                        _("Account {0} does not belong to company {1}").format(
-                            d.account, self.company
-                        )
-                    )
+                    frappe.throw(_("Account {0} does not belong to company {1}").format(d.account, self.company))
                 elif account_details.report_type != "Profit and Loss":
                     frappe.throw(
-                        _(
-                            "Budget cannot be assigned against {0}, as it's not an Income or Expense account"
-                        ).format(d.account)
+                        _("Budget cannot be assigned against {0}, as it's not an Income or Expense account").format(
+                            d.account
+                        )
                     )
 
                 if d.account in account_list:
-                    frappe.throw(
-                        _("Account {0} has been entered multiple times").format(
-                            d.account
-                        )
-                    )
+                    frappe.throw(_("Account {0} has been entered multiple times").format(d.account))
                 else:
                     account_list.append(d.account)
 
@@ -241,11 +214,7 @@ class MultiDimensionalBudget(Document):
             if row.accounting_dimension not in dimensions:
                 dimensions.append(row.accounting_dimension)
             else:
-                frappe.throw(
-                    _("Duplicate accounting dimension found: {0}").format(
-                        row.accounting_dimension
-                    )
-                )
+                frappe.throw(_("Duplicate accounting dimension found: {0}").format(row.accounting_dimension))
 
             if frappe.get_meta(row.accounting_dimension).get_field("company"):
                 if row.accounting_dimension_name:
@@ -256,9 +225,9 @@ class MultiDimensionalBudget(Document):
                     )
                     if company != self.company:
                         frappe.throw(
-                            _(
-                                "Accounting Dimension {0} does not belong to company {1}"
-                            ).format(row.accounting_dimension_name, self.company)
+                            _("Accounting Dimension {0} does not belong to company {1}").format(
+                                row.accounting_dimension_name, self.company
+                            )
                         )
 
     def validate_branch_dimension(self):
@@ -271,11 +240,7 @@ class MultiDimensionalBudget(Document):
                 break
 
         if not has_branch:
-            frappe.throw(
-                _(
-                    "Branch dimension is required. <br><b>Branch</b> as accounting dimension must be selected"
-                )
-            )
+            frappe.throw(_("Branch dimension is required. <br><b>Branch</b> as accounting dimension must be selected"))
 
     @frappe.whitelist()
     def calculate_total_amount(self, caller: str | None = None) -> float:
