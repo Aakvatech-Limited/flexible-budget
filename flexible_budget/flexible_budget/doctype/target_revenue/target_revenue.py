@@ -1,11 +1,13 @@
 # Copyright (c) 2025, Emanuel Fidelis and contributors
 # For license information, please see license.txt
 
-import frappe
 from datetime import timedelta
+
+import frappe
 from frappe.model.document import Document
-from frappe.utils.background_jobs import enqueue
 from frappe.utils import add_days, add_months, getdate
+from frappe.utils.background_jobs import enqueue
+
 from flexible_budget.flexible_budget.utils import update_revenue
 
 
@@ -29,7 +31,7 @@ class TargetRevenue(Document):  # nosemgrep: frappe-modifying-but-not-comitting-
         self.db_update()
 
     def on_submit(self):
-        enqueue(method=update_revenue, revenue_doc=self)
+        enqueue(method=update_revenue, revenue_doc=self, enqueue_after_commit=True)
 
     def check_existing_target_revenue(self):
         existing_target = frappe.db.exists(
@@ -75,9 +77,7 @@ class TargetRevenue(Document):  # nosemgrep: frappe-modifying-but-not-comitting-
                     self.actual_earned_amount = 0
                     self.earned_amount = earned_amount
 
-                self.target_percentage = (
-                    (self.earned_amount or 0) / (self.target_amount)
-                ) * 100
+                self.target_percentage = ((self.earned_amount or 0) / (self.target_amount)) * 100
 
     @frappe.whitelist()
     def set_end_date_from_frequency(self, settings: dict | None = None):
@@ -92,9 +92,7 @@ class TargetRevenue(Document):  # nosemgrep: frappe-modifying-but-not-comitting-
         if self.start_date:
             start_date = getdate(self.start_date)
 
-            frequency = (
-                (settings.get("frequency") or "").strip().lower() if settings else ""
-            )
+            frequency = (settings.get("frequency") or "").strip().lower() if settings else ""
 
             if frequency == "weekly":
                 self.end_date = add_days(start_date, 6)
