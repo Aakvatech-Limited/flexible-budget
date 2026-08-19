@@ -36,7 +36,12 @@ select = [
   "B",
 ]
 ignore = [
-  "E501",
+  "E101",
   "E402",
+  "E501",
   "E741",
+  "W191",
 ]
+
+[tool.ruff.format]
+indent-style = "tab"
