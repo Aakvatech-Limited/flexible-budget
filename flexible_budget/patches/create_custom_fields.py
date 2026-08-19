@@ -8,67 +8,67 @@ folder = "./custom_fields/custom_fields_json"
 
 
 def load_json(file: str) -> list | dict:
-    CURR_DIR = os.path.abspath(os.path.dirname(__file__))
-    json_file_path = os.path.join(CURR_DIR, folder, file)
-    # TODO do not load the file if already applied
-    with open(  # nosemgrep: security.frappe-security-file-traversal
-        json_file_path
-    ) as file_obj:
-        data = json.load(file_obj)
-    return data
+	CURR_DIR = os.path.abspath(os.path.dirname(__file__))
+	json_file_path = os.path.join(CURR_DIR, folder, file)
+	# TODO do not load the file if already applied
+	with open(  # nosemgrep: security.frappe-security-file-traversal
+		json_file_path
+	) as file_obj:
+		data = json.load(file_obj)
+	return data
 
 
 def create_fields_from_json(custom_fields_obj: list) -> None:
-    disallowed_fields = [
-        "name",
-        "owner",
-        "creation",
-        "modified",
-        "modified_by",
-        "docstatus",
-        "idx",
-        "is_system_generated",
-        "__last_sync_on",
-    ]
-    doctype_custom_fields_dict = {}
+	disallowed_fields = [
+		"name",
+		"owner",
+		"creation",
+		"modified",
+		"modified_by",
+		"docstatus",
+		"idx",
+		"is_system_generated",
+		"__last_sync_on",
+	]
+	doctype_custom_fields_dict = {}
 
-    for custom_field in custom_fields_obj:
-        if not custom_field:
-            continue
+	for custom_field in custom_fields_obj:
+		if not custom_field:
+			continue
 
-        doctype = custom_field["dt"]
-        all_fields = frappe.get_meta("Custom Field").get_valid_columns()
-        field_list = set(all_fields).difference(disallowed_fields)
-        custom_field_dict = {}
-        for field_name in field_list:
-            custom_field_dict[field_name] = custom_field.get(field_name)
+		doctype = custom_field["dt"]
+		all_fields = frappe.get_meta("Custom Field").get_valid_columns()
+		field_list = set(all_fields).difference(disallowed_fields)
+		custom_field_dict = {}
+		for field_name in field_list:
+			custom_field_dict[field_name] = custom_field.get(field_name)
 
-        # Ensure the list for the doctype is initialized
-        if doctype not in doctype_custom_fields_dict:
-            doctype_custom_fields_dict[doctype] = []
+		# Ensure the list for the doctype is initialized
+		if doctype not in doctype_custom_fields_dict:
+			doctype_custom_fields_dict[doctype] = []
 
-        doctype_custom_fields_dict[doctype].append(custom_field_dict)
+		doctype_custom_fields_dict[doctype].append(custom_field_dict)
 
-    create_custom_fields(doctype_custom_fields_dict, update=False)
+	create_custom_fields(doctype_custom_fields_dict, update=False)
 
 
 def execute() -> None:
-    # read names of only json files in this folder and put it into files list
-    files = [
-        x for x in os.listdir(os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)) if x.endswith(".json")
-    ]
-    for file in files:
-        data = load_json(file)
-        create_fields_from_json(data)
+	# read names of only json files in this folder and put it into files list
+	files = [
+		x for x in os.listdir(os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)) if x.endswith(".json")
+	]
+	for file in files:
+		data = load_json(file)
+		create_fields_from_json(data)
 
 
 @frappe.whitelist()
 def export_custom_fields(docnames: list | str) -> str:
-    docnames = frappe.parse_json(docnames)
-    custom_fields = []
+	docnames = frappe.parse_json(docnames)
+	custom_fields = []
 
-    for docname in docnames:
-        doc = frappe.get_doc("Custom Field", docname)
-        custom_fields.append(doc.as_dict(convert_dates_to_str=True, no_default_fields=True, no_nulls=True))
+	for docname in docnames:
+		doc = frappe.get_doc("Custom Field", docname)
+		custom_fields.append(doc.as_dict(convert_dates_to_str=True, no_default_fields=True, no_nulls=True))
 
-    return str(custom_fields)
+	return str(custom_fields)
