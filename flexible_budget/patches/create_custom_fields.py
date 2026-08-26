@@ -55,7 +55,9 @@ def create_fields_from_json(custom_fields_obj: list) -> None:
 def execute() -> None:
 	# read names of only json files in this folder and put it into files list
 	files = [
-		x for x in os.listdir(os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)) if x.endswith(".json")
+		x
+		for x in os.listdir(os.path.join(os.path.abspath(os.path.dirname(__file__)), folder))
+		if x.endswith(".json")
 	]
 	for file in files:
 		data = load_json(file)
