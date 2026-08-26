@@ -34,6 +34,7 @@ class MultiDimensionalBudget(Document):
 	def before_save(self):
 		self.validate_required_fields()
 		self.validate_date_overlap()
+		self.validate_accounting_dimensions()
 		self.validate_accounts()
 		self.calculate_total_amount()
 
@@ -156,28 +157,22 @@ class MultiDimensionalBudget(Document):
 		for budget in existing_budgets:
 			other = frappe.get_doc("Multi-Dimensional Budget", budget.name)
 
-			current_set = {
-				(
-					row.accounting_dimension.strip(),
-					row.accounting_dimension_name.strip(),
-				)
-				for row in self.accounting_dimensions
-			}
-			other_set = {
-				(
-					row.accounting_dimension.strip(),
-					row.accounting_dimension_name.strip(),
-				)
-				for row in other.accounting_dimensions
-			}
+			current_set = self.get_dimension_set()
+			other_set = other.get_dimension_set()
 
 			if current_set == other_set:
 				frappe.throw(
 					_(
-						"A Multi-Dimensional Budget with the same accounting dimension composition already exists for this period (Overlap with: <a href='/app/multi-dimensional-budget/{0}'>{0}</a>)"
-					).format(other.name),
+						"A Multi-Dimensional Budget with the same accounting dimension composition already exists for this period (Overlap with: {0})"
+					).format(frappe.utils.get_link_to_form("Multi-Dimensional Budget", other.name)),
 					title=_("Duplicate Budget Not Allowed"),
 				)
+
+	def get_dimension_set(self):
+		return {
+			((row.accounting_dimension or "").strip(), (row.accounting_dimension_name or "").strip())
+			for row in self.accounting_dimensions
+		}
 
 	def validate_accounts(self):
 		account_list = []
