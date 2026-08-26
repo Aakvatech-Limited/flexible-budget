@@ -179,7 +179,7 @@ scheduler_events = {"Cron": {"30 0 * * *": ["flexible_budget.flexible_budget.uti
 # Testing
 # -------
 
-# before_tests = "flexible_budget.install.before_tests"
+before_tests = "flexible_budget.tests.utils.before_tests"
 
 # Overriding Methods
 # ------------------------------
