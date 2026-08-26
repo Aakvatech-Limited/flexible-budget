@@ -322,8 +322,12 @@ def get_multi_dimensional_budget_data(filters):
 	data = []
 
 	# Get fiscal year date ranges
-	from_fy_data = frappe.db.get_value("Fiscal Year", filters["from_fiscal_year"], ["year_start_date", "year_end_date"])
-	to_fy_data = frappe.db.get_value("Fiscal Year", filters["to_fiscal_year"], ["year_start_date", "year_end_date"])
+	from_fy_data = frappe.db.get_value(
+		"Fiscal Year", filters["from_fiscal_year"], ["year_start_date", "year_end_date"]
+	)
+	to_fy_data = frappe.db.get_value(
+		"Fiscal Year", filters["to_fiscal_year"], ["year_start_date", "year_end_date"]
+	)
 
 	if not from_fy_data or not to_fy_data:
 		frappe.throw(_("Invalid fiscal year selection"))
@@ -372,7 +376,9 @@ def get_multi_dimensional_budget_data(filters):
 				# Calculate monthly budget amount (proportional)
 				total_days = (getdate(budget.end_date) - getdate(budget.start_date)).days + 1
 				month_days = (getdate(month_data["end_date"]) - getdate(month_data["start_date"])).days + 1
-				monthly_budget = (account_row.budget_amount * month_days) / total_days if total_days > 0 else 0
+				monthly_budget = (
+					(account_row.budget_amount * month_days) / total_days if total_days > 0 else 0
+				)
 				row["budget_amount"] = monthly_budget
 
 				# Add dimension data and build filters
@@ -383,7 +389,9 @@ def get_multi_dimensional_budget_data(filters):
 				for dim_row in budget_doc.accounting_dimensions:
 					dimension_key = frappe.scrub(dim_row.accounting_dimension).lower()
 					row[dimension_key] = dim_row.accounting_dimension_name
-					dimension_filters[frappe.scrub(dim_row.accounting_dimension)] = dim_row.accounting_dimension_name
+					dimension_filters[frappe.scrub(dim_row.accounting_dimension)] = (
+						dim_row.accounting_dimension_name
+					)
 
 					# Store branch value for Target Revenue lookup
 					if dim_row.accounting_dimension.lower() == "branch":
@@ -391,7 +399,9 @@ def get_multi_dimensional_budget_data(filters):
 
 					# Apply dimension filters from report filters
 					filter_key = dimension_key
-					if filters.get(filter_key) and dim_row.accounting_dimension_name not in filters.get(filter_key):
+					if filters.get(filter_key) and dim_row.accounting_dimension_name not in filters.get(
+						filter_key
+					):
 						should_include_row = False
 						break
 
@@ -414,7 +424,9 @@ def get_multi_dimensional_budget_data(filters):
 
 				# Calculate allowed amount
 				allowed_amount = (
-					monthly_budget * (row["target_percentage"] / 100) if row["target_percentage"] else monthly_budget
+					monthly_budget * (row["target_percentage"] / 100)
+					if row["target_percentage"]
+					else monthly_budget
 				)
 				row["allowed_amount"] = allowed_amount
 

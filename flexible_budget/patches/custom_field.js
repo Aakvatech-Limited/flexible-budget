@@ -11,8 +11,8 @@ frappe.listview_settings["Custom Field"] = {
         selected_docs.map((doc) =>
           fetch(`/api/resource/Custom Field/${doc.name}`)
             .then((response) => response.json())
-            .then((data) => data.data),
-        ),
+            .then((data) => data.data)
+        )
       );
 
       const data_to_export = detailed_docs.map((doc) => {

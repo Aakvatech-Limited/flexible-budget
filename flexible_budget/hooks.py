@@ -1,9 +1,7 @@
 app_name = "flexible_budget"
 app_title = "Flexible Budget"
 app_publisher = "Aakvatech Limited"
-app_description = (
-	"'Adjuest Budgets based on changes of Sales volume, Production volume or any other revenue target changes'"
-)
+app_description = "'Adjuest Budgets based on changes of Sales volume, Production volume or any other revenue target changes'"
 app_email = "info@aakvatech.com"
 app_license = "mit"
 

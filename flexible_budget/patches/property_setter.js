@@ -11,8 +11,8 @@ frappe.listview_settings["Property Setter"] = {
         selected_docs.map((doc) =>
           fetch(`/api/resource/Property Setter/${doc.name}`)
             .then((response) => response.json())
-            .then((data) => data.data),
-        ),
+            .then((data) => data.data)
+        )
       );
 
       const data_to_export = detailed_docs.map((doc) => {
