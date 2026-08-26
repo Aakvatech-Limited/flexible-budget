@@ -47,8 +47,8 @@ app_license = "mit"
 
 
 doctype_list_js = {
-	"Custom Field": "flexible_budget/patches/custom_field.js",
-	"Property Setter": "flexible_budget/patches/property_setter.js",
+	"Custom Field": "patches/custom_field.js",
+	"Property Setter": "patches/property_setter.js",
 }
 
 
@@ -96,6 +96,8 @@ after_migrate = [
 	"flexible_budget.patches.create_custom_fields.execute",
 	"flexible_budget.patches.create_property_setter.execute",
 ]
+
+after_install = after_migrate
 
 # Uninstallation
 # ------------
@@ -174,12 +176,12 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-scheduler_events = {"Cron": {"30 0 * * *": ["flexible_budget.flexible_budget.utils.update_revenue"]}}
+scheduler_events = {"cron": {"30 0 * * *": ["flexible_budget.flexible_budget.utils.update_revenue"]}}
 
 # Testing
 # -------
 
-# before_tests = "flexible_budget.install.before_tests"
+before_tests = "flexible_budget.tests.utils.before_tests"
 
 # Overriding Methods
 # ------------------------------

@@ -41,10 +41,10 @@ def validate_filters(filters):
 		frappe.throw(_("To Fiscal Year is mandatory"))
 
 	# Validate fiscal year order
-	from_fy_year = int(filters.get("from_fiscal_year").split("-")[0])
-	to_fy_year = int(filters.get("to_fiscal_year").split("-")[0])
+	from_fy_start = frappe.db.get_value("Fiscal Year", filters.get("from_fiscal_year"), "year_start_date")
+	to_fy_start = frappe.db.get_value("Fiscal Year", filters.get("to_fiscal_year"), "year_start_date")
 
-	if from_fy_year > to_fy_year:
+	if from_fy_start and to_fy_start and from_fy_start > to_fy_start:
 		frappe.throw(_("From Fiscal Year cannot be greater than To Fiscal Year"))
 
 
@@ -246,7 +246,7 @@ def get_target_revenue_data(company, branch, start_date, end_date, frequency):
 
 	if not frequency:
 		frequency = frappe.db.get_value("Company Budget Control", {"company": company}, "frequency")
-		frequency = (frequency or "").strip().lower()
+	frequency = (frequency or "").strip().lower()
 
 	# Calculate days difference based on frequency (same as utils.py)
 	days_diff = 0
@@ -628,7 +628,7 @@ def get_message(filters, data):
 def export_to_excel(filters: dict | str) -> str:
 	"""Export report data to Excel with formatting"""
 	try:
-		columns, data, message, chart, summary = execute(filters)
+		columns, data, message, chart, summary = execute(frappe.parse_json(filters))
 
 		if not data:
 			frappe.throw(_("No data found for the selected filters"))
@@ -674,6 +674,8 @@ def export_to_excel(filters: dict | str) -> str:
 def create_budget_adjustment(selected_data: list | str, adjustment_details: dict | str) -> dict:
 	"""Create budget adjustment based on selected variance data"""
 	try:
+		selected_data = frappe.parse_json(selected_data)
+		adjustment_details = frappe.parse_json(adjustment_details)
 		if not selected_data or not adjustment_details:
 			frappe.throw(_("Invalid data provided for budget adjustment"))
 
@@ -735,8 +737,8 @@ def create_budget_adjustment(selected_data: list | str, adjustment_details: dict
 			temp_account_doc.account_name = "Budget Adjustment Account"
 			temp_account_doc.parent_account = frappe.db.get_value(
 				"Account",
-				{"account_type": "Temporary", "company": journal_entry.company},
-				"name",
+				{"account_type": "Temporary", "company": journal_entry.company, "is_group": 0},
+				"parent_account",
 			)
 			temp_account_doc.company = journal_entry.company
 			temp_account_doc.account_type = "Temporary"
@@ -789,8 +791,8 @@ def get_budget_utilization_summary(data):
 
 	utilization_rate = (total_actual / total_budget * 100) if total_budget > 0 else 0
 
-	over_budget_count = len([row for row in data if flt(row.get("variance", 0)) < 0])
-	under_budget_count = len([row for row in data if flt(row.get("variance", 0)) > 0])
+	over_budget_count = len([row for row in data if flt(row.get("variance_amount", 0)) < 0])
+	under_budget_count = len([row for row in data if flt(row.get("variance_amount", 0)) > 0])
 
 	return {
 		"total_budget": total_budget,
