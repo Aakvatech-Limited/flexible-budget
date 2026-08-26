@@ -193,12 +193,14 @@ class MultiDimensionalBudget(Document):
 					frappe.throw(_("Budget cannot be assigned against Group Account {0}").format(d.account))
 
 				elif account_details.company != self.company:
-					frappe.throw(_("Account {0} does not belong to company {1}").format(d.account, self.company))
+					frappe.throw(
+						_("Account {0} does not belong to company {1}").format(d.account, self.company)
+					)
 				elif account_details.report_type != "Profit and Loss":
 					frappe.throw(
-						_("Budget cannot be assigned against {0}, as it's not an Income or Expense account").format(
-							d.account
-						)
+						_(
+							"Budget cannot be assigned against {0}, as it's not an Income or Expense account"
+						).format(d.account)
 					)
 
 				if d.account in account_list:
@@ -240,7 +242,9 @@ class MultiDimensionalBudget(Document):
 				break
 
 		if not has_branch:
-			frappe.throw(_("Branch dimension is required. <br><b>Branch</b> as accounting dimension must be selected"))
+			frappe.throw(
+				_("Branch dimension is required. <br><b>Branch</b> as accounting dimension must be selected")
+			)
 
 	@frappe.whitelist()
 	def calculate_total_amount(self, caller: str | None = None) -> float:
