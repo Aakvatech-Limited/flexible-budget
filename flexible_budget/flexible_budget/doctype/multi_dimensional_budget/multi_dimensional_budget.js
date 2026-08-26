@@ -80,7 +80,7 @@ let set_dimension_options = (frm) => {
         frm.fields_dict["accounting_dimensions"].grid.update_docfield_property(
           "accounting_dimension",
           "options",
-          options.join("\n"),
+          options.join("\n")
         );
         frm.refresh_field("accounting_dimensions");
       }
