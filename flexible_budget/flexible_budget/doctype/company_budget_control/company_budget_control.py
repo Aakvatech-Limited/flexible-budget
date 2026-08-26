@@ -29,4 +29,6 @@ class CompanyBudgetControl(Document):
 			"Company Budget Control",
 			{"company": self.company, "name": ["!=", self.name]},
 		):
-			frappe.throw(_("A Company Budget Control already exists for the company <b>{0}</b>.").format(self.company))
+			frappe.throw(
+				_("A Company Budget Control already exists for the company <b>{0}</b>.").format(self.company)
+			)

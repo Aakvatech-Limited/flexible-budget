@@ -181,7 +181,9 @@ def validate_budget_on_po_and_mr(doc, method):
 				"child_doctype": child_doctype,
 				"is_child_new": is_new,
 				"company": doc.company,
-				"posting_date": (doc.schedule_date if doc.doctype == "Material Request" else doc.transaction_date),
+				"posting_date": (
+					doc.schedule_date if doc.doctype == "Material Request" else doc.transaction_date
+				),
 			}
 		)
 
@@ -257,7 +259,9 @@ def validate_budget_on_jv(doc, method):
 			}
 		)
 
-		validate_expense_against_budget(doc, args, expense_amount=account.debit_in_account_currency, method=method)
+		validate_expense_against_budget(
+			doc, args, expense_amount=account.debit_in_account_currency, method=method
+		)
 
 
 def validate_budget_on_expense_claim(doc, method: str) -> None:
@@ -349,7 +353,9 @@ def validate_expense_against_budget(doc, args, expense_amount=0, method="before_
 					valid_budget["target_percentage"] = get_target_revenue_percent(
 						args.company, args.posting_date, branch_name
 					)
-					valid_budget["allowed_amount"] = row.budget_amount * (valid_budget["target_percentage"] / 100)
+					valid_budget["allowed_amount"] = row.budget_amount * (
+						valid_budget["target_percentage"] / 100
+					)
 
 					break
 
@@ -417,7 +423,9 @@ def compare_expense_with_budget(doc, args, action, budget, amount=0, method="bef
 
 		dimension_str = ""
 		for dimension in budget.accounting_dimensions:
-			dimension_str += f"{dimension.accounting_dimension}: <b>{dimension.accounting_dimension_name}</b>, "
+			dimension_str += (
+				f"{dimension.accounting_dimension}: <b>{dimension.accounting_dimension_name}</b>, "
+			)
 
 		msg = _(
 			f"Budget for Account {frappe.bold(args.account)} against {dimension_str}\
@@ -445,7 +453,9 @@ def compare_expense_with_budget(doc, args, action, budget, amount=0, method="bef
 
 
 def get_actual_expense(args, budget):
-	condition1 = f" and gle.posting_date >= '{budget.start_date}' and gle.posting_date <= '{budget.end_date}' "
+	condition1 = (
+		f" and gle.posting_date >= '{budget.start_date}' and gle.posting_date <= '{budget.end_date}' "
+	)
 
 	condition2 = ""
 	for dimension in budget.get("accounting_dimensions"):
@@ -812,9 +822,7 @@ def update_budget_values(doc, args, budget, total_expense, currency):
 	msg = f"{dimension_str}:<ul style='list-style-type:disc'>"
 	msg += f"<li>Budget Amount: {frappe.bold(fmt_money(budget.allowed_amount, currency=currency))}</li>"
 	msg += f"<li>Total Expense: {frappe.bold(fmt_money(total_expense, currency=currency))}</li>"
-	msg += (
-		f"<li>Remaining Budget: {frappe.bold(fmt_money(budget.allowed_amount - total_expense, currency=currency))}</li>"
-	)
+	msg += f"<li>Remaining Budget: {frappe.bold(fmt_money(budget.allowed_amount - total_expense, currency=currency))}</li>"
 	msg += "</ul><hr>"
 
 	doc.budget_overview = budget_overview + msg
