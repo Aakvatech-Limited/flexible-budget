@@ -100,7 +100,7 @@ def get_revenue_per_target_doc(doc):
 
 	net_revenue = total_credit - total_debit
 
-	doc.earned_amount += abs(net_revenue)
+	doc.earned_amount = abs(net_revenue)
 	doc.calculate_target_percentage()
 
 	doc.db_update()
@@ -411,15 +411,12 @@ def compare_expense_with_budget(doc, args, action, budget, amount=0, method="bef
 	)
 
 	total_expense = args.actual_expense + amount
+	if doc.is_new():
+		total_expense += flt(args.get("amount"))
 
 	currency = frappe.get_cached_value("Company", args.company, "default_currency")
 	if total_expense > budget.allowed_amount:
-		if total_expense > budget.allowed_amount:
-			error_tense = _("is already")
-			diff = total_expense - budget.allowed_amount
-		else:
-			error_tense = _("will be")
-			diff = total_expense - budget.allowed_amount
+		diff = total_expense - budget.allowed_amount
 
 		dimension_str = ""
 		for dimension in budget.accounting_dimensions:
@@ -427,10 +424,11 @@ def compare_expense_with_budget(doc, args, action, budget, amount=0, method="bef
 				f"{dimension.accounting_dimension}: <b>{dimension.accounting_dimension_name}</b>, "
 			)
 
-		msg = _(
-			f"Budget for Account {frappe.bold(args.account)} against {dimension_str}\
-                 is {frappe.bold(fmt_money(budget.allowed_amount, currency=currency))}.\
-                     It {error_tense} exceed by {frappe.bold(fmt_money(diff, currency=currency))}"
+		msg = _("Budget for Account {0} against {1} is {2}. It is already exceeded by {3}").format(
+			frappe.bold(args.account),
+			dimension_str,
+			frappe.bold(fmt_money(budget.allowed_amount, currency=currency)),
+			frappe.bold(fmt_money(diff, currency=currency)),
 		)
 		msg += get_expense_breakup(args, currency, budget)
 
@@ -503,6 +501,7 @@ def get_ordered_amount(args, budget):
 		.on(parent.name == child.parent)
 		.select(Coalesce(Sum(child.amount - child.billed_amt), 0))
 		.where(child.amount > child.billed_amt)
+		.where(parent.docstatus < 2)
 		.where(parent.status != "Closed")
 	)
 
@@ -522,6 +521,7 @@ def get_requested_amount(args, budget):
 		.select(Coalesce(Sum((child.stock_qty - child.ordered_qty) * child.rate), 0))
 		.where(child.stock_qty > child.ordered_qty)
 		.where(parent.material_request_type == "Purchase")
+		.where(parent.docstatus < 2)
 		.where(parent.status != "Stopped")
 	)
 
@@ -618,160 +618,76 @@ def add_budget_filters(query, args, budget, for_doc, parent, child):
 
 
 def get_expense_breakup(args, currency, budget):
-	msg = "<hr>Total Expenses booked through - <ul>"
-
-	filters = {
-		"account": args.account,
-		"company": args.company,
-	}
-
+	common_filters = {"account": args.account, "company": args.company}
 	for row in budget.get("accounting_dimensions"):
-		filters[row.accounting_dimension] = row.accounting_dimension_name
+		common_filters[row.accounting_dimension] = row.accounting_dimension_name
+	period = [str(budget.start_date), str(budget.end_date)]
+	expense_claim_filters = {**common_filters, "default_account": args.account}
+	expense_claim_filters.pop("account")
 
-	common_filters = frappe._dict(filters)
-
-	msg += (
-		"<li>"
-		+ frappe.utils.get_link_to_report(
-			"General Ledger",
-			label="Actual Expenses",
-			filters=common_filters.copy().update(
-				{
-					"start_date": budget.start_date,
-					"end_date": budget.end_date,
-					"is_cancelled": 0,
-				}
-			),
+	def report_link(label, amount, name, **filters):
+		is_ledger = name == "General Ledger"
+		link = frappe.utils.get_link_to_report(
+			name,
+			label=label,
+			report_type=None if is_ledger else "Report Builder",
+			doctype=None if is_ledger else name,
+			filters=filters,
 		)
-		+ " - "
-		+ frappe.bold(fmt_money(args.actual_expense, currency=currency))
-		+ "</li>"
+		return f"<li>{link} - {frappe.bold(fmt_money(amount, currency=currency))}</li>"
+
+	msg = "<hr>Total Expenses booked through - <ul>"
+	msg += report_link(
+		"Actual Expenses",
+		args.actual_expense,
+		"General Ledger",
+		**common_filters,
+		start_date=budget.start_date,
+		end_date=budget.end_date,
+		is_cancelled=0,
 	)
-
-	msg += (
-		"<li>"
-		+ frappe.utils.get_link_to_report(
-			"Material Request",
-			label="Material Requests",
-			report_type="Report Builder",
-			doctype="Material Request",
-			filters=common_filters.copy().update(
-				{
-					"status": [["!=", "Stopped"]],
-					"material_request_type": "Purchase",
-					"schedule_date": [
-						"between",
-						[str(budget.start_date), str(budget.end_date)],
-					],
-					"item_code": args.item_code,
-					"per_ordered": [["<", 100]],
-				}
-			),
-		)
-		+ " - "
-		+ frappe.bold(fmt_money(args.requested_amount, currency=currency))
-		+ "</li>"
+	msg += report_link(
+		"Material Requests",
+		args.requested_amount,
+		"Material Request",
+		**common_filters,
+		status=[["!=", "Stopped"]],
+		material_request_type="Purchase",
+		schedule_date=["between", period],
+		item_code=args.item_code,
+		per_ordered=[["<", 100]],
 	)
-
-	msg += (
-		"<li>"
-		+ frappe.utils.get_link_to_report(
-			"Purchase Order",
-			label="Unbilled Orders",
-			report_type="Report Builder",
-			doctype="Purchase Order",
-			filters=common_filters.copy().update(
-				{
-					"status": [["!=", "Closed"]],
-					"transaction_date": [
-						"between",
-						[str(budget.start_date), str(budget.end_date)],
-					],
-					"item_code": args.item_code,
-					"per_billed": [["<", 100]],
-				}
-			),
-		)
-		+ " - "
-		+ frappe.bold(fmt_money(args.ordered_amount, currency=currency))
-		+ "</li>"
+	msg += report_link(
+		"Unbilled Orders",
+		args.ordered_amount,
+		"Purchase Order",
+		**common_filters,
+		status=[["!=", "Closed"]],
+		transaction_date=["between", period],
+		item_code=args.item_code,
+		per_billed=[["<", 100]],
 	)
-
-	msg += (
-		"<li>"
-		+ frappe.utils.get_link_to_report(
-			"Purchase Invoice",
-			label="Pending Invoices",
-			report_type="Report Builder",
-			doctype="Purchase Invoice",
-			filters=common_filters.copy().update(
-				{
-					"status": [["!=", "Paid"]],
-					"posting_date": [
-						"between",
-						[str(budget.start_date), str(budget.end_date)],
-					],
-					"item_code": args.item_code,
-					"per_billed": [["<", 100]],
-				}
-			),
-		)
-		+ " - "
-		+ frappe.bold(fmt_money(args.invoice_amount, currency=currency))
-		+ "</li>"
+	msg += report_link(
+		"Pending Invoices",
+		args.invoice_amount,
+		"Purchase Invoice",
+		**common_filters,
+		status=[["!=", "Paid"]],
+		posting_date=["between", period],
+		item_code=args.item_code,
 	)
-
-	msg += (
-		"<li>"
-		+ frappe.utils.get_link_to_report(
-			"Journal Entry",
-			label="Pending JVs",
-			report_type="Report Builder",
-			doctype="Journal Entry",
-			filters=common_filters.copy().update(
-				{
-					"posting_date": [
-						"between",
-						[str(budget.start_date), str(budget.end_date)],
-					],
-					"account": args.account,
-					"per_billed": [["<", 100]],
-				}
-			),
-		)
-		+ " - "
-		+ frappe.bold(fmt_money(args.jv_amount, currency=currency))
-		+ "</li>"
+	msg += report_link(
+		"Pending JVs", args.jv_amount, "Journal Entry", **common_filters, posting_date=["between", period]
 	)
-
-	expense_claim_filters = common_filters.copy()
-	if "account" in expense_claim_filters:
-		expense_claim_filters["default_account"] = expense_claim_filters.pop("account")
-
-	msg += (
-		"<li>"
-		+ frappe.utils.get_link_to_report(
-			"Expense Claim",
-			label="Pending Expense Claims",
-			report_type="Report Builder",
-			doctype="Expense Claim",
-			filters=expense_claim_filters.update(
-				{
-					"status": [["!=", "Paid"]],
-					"posting_date": [
-						"between",
-						[str(budget.start_date), str(budget.end_date)],
-					],
-				}
-			)
-			or expense_claim_filters,
-		)
-		+ " - "
-		+ frappe.bold(fmt_money(args.expense_claim_amount, currency=currency))
-		+ "</li></ul>"
+	msg += report_link(
+		"Pending Expense Claims",
+		args.expense_claim_amount,
+		"Expense Claim",
+		**expense_claim_filters,
+		status=[["!=", "Paid"]],
+		posting_date=["between", period],
 	)
-
-	return msg
+	return msg + "</ul>"
 
 
 def get_target_revenue_percent(company, posting_date, branch_name):
