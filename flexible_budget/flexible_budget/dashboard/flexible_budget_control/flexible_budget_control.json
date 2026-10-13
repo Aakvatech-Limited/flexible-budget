@@ -1,0 +1,30 @@
+{
+ "doctype": "Dashboard",
+ "name": "Flexible Budget Control",
+ "dashboard_name": "Flexible Budget Control",
+ "docstatus": 0,
+ "module": "Flexible Budget",
+ "is_standard": 1,
+ "is_default": 0,
+ "cards": [
+  {
+   "card": "Submitted Multi-Dimensional Budgets"
+  },
+  {
+   "card": "Submitted Revenue Targets"
+  },
+  {
+   "card": "Companies with Budget Policies"
+  }
+ ],
+ "charts": [
+  {
+   "chart": "Budget Plans by Company",
+   "width": "Full"
+  },
+  {
+   "chart": "Revenue Targets by Branch",
+   "width": "Full"
+  }
+ ]
+}

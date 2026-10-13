@@ -1,0 +1,17 @@
+{
+ "doctype": "Dock",
+ "name": "flexible_budget",
+ "app": "flexible_budget",
+ "standard": 1,
+ "user": "",
+ "items": [
+  {
+   "link_type": "Sidebar",
+   "link_to": "Flexible Budget",
+   "title": "Flexible Budget",
+   "icon": "chart-no-axes-combined",
+   "hidden": 0,
+   "added": 0
+  }
+ ]
+}
