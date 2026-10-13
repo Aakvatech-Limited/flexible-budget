@@ -1,0 +1,17 @@
+{
+ "doctype": "Dashboard Chart",
+ "name": "Budget Plans by Company",
+ "chart_name": "Budget Plans by Company",
+ "chart_type": "Group By",
+ "document_type": "Multi-Dimensional Budget",
+ "is_standard": 1,
+ "is_public": 1,
+ "module": "Flexible Budget",
+ "type": "Bar",
+ "timeseries": 0,
+ "filters_json": "[[\"Multi-Dimensional Budget\",\"docstatus\",\"=\",1]]",
+ "number_of_groups": 0,
+ "group_by_based_on": "company",
+ "group_by_type": "Count",
+ "dynamic_filters_json": "[]"
+}
