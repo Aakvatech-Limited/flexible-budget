@@ -11,15 +11,14 @@ app_license = "mit"
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "flexible_budget",
-# 		"logo": "/assets/flexible_budget/logo.png",
-# 		"title": "Flexible Budget",
-# 		"route": "/flexible_budget",
-# 		"has_permission": "flexible_budget.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "flexible_budget",
+		"logo": "/assets/flexible_budget/images/flexible_budget.svg",
+		"title": "Flexible Budget",
+		"route": "/desk/flexible-budget",
+	}
+]
 
 # Includes in <head>
 # ------------------
