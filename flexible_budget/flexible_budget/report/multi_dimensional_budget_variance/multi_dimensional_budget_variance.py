@@ -4,6 +4,7 @@
 import calendar
 
 import frappe
+from pypika import Order
 from dateutil.relativedelta import relativedelta
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
@@ -267,53 +268,26 @@ def get_target_revenue_data(company, branch, start_date, end_date, frequency):
 	lookup_date = add_days(getdate(start_date), 1)
 	prev_date = add_days(lookup_date, -days_diff)
 
-	# Find Target Revenue using the utils.py approach
-	target_revenue = frappe.db.sql(
-		"""
-        SELECT
-            target_amount,
-            earned_amount,
-            target_percentage
-        FROM `tabTarget Revenue`
-        WHERE company = %(company)s
-            AND branch = %(branch)s
-            AND start_date <= %(prev_date)s
-            AND end_date >= %(prev_date)s
-            AND docstatus = 1
-        ORDER BY creation DESC
-        LIMIT 1
-    """,
-		{"company": company, "branch": branch, "prev_date": prev_date},
-		as_dict=True,
+	# Preserve previous-period lookup and current-period fallback.
+	tr = frappe.qb.DocType("Target Revenue")
+	base_query = (
+		frappe.qb.from_(tr)
+		.select(tr.target_amount, tr.earned_amount, tr.target_percentage)
+		.where(tr.company == company)
+		.where(tr.branch == branch)
+		.where(tr.docstatus == 1)
+		.orderby(tr.creation, order=Order.desc)
+		.limit(1)
 	)
 
-	if len(target_revenue) > 0:
-		return target_revenue[0]
+	for lookup_date in (prev_date, start_date):
+		rows = (
+			base_query.where(tr.start_date <= lookup_date)
+			.where(tr.end_date >= lookup_date)
+		).run(as_dict=True)
+		if rows:
+			return rows[0]
 
-	# Alternative: Try direct period matching as fallback
-	target_revenue = frappe.db.sql(
-		"""
-        SELECT
-            target_amount,
-            earned_amount,
-            target_percentage
-        FROM `tabTarget Revenue`
-        WHERE company = %(company)s
-            AND branch = %(branch)s
-            AND start_date <= %(start_date)s
-            AND end_date >= %(start_date)s
-            AND docstatus = 1
-        ORDER BY creation DESC
-        LIMIT 1
-    """,
-		{"company": company, "branch": branch, "start_date": start_date},
-		as_dict=True,
-	)
-
-	if len(target_revenue) > 0:
-		return target_revenue[0]
-
-	# Return default values if no Target Revenue found
 	return {"target_amount": 0, "earned_amount": 0, "target_percentage": 0}
 
 
