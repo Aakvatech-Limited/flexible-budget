@@ -451,44 +451,40 @@ def compare_expense_with_budget(doc, args, action, budget, amount=0, method="bef
 
 
 def get_actual_expense(args, budget):
-	condition1 = (
-		f" and gle.posting_date >= '{budget.start_date}' and gle.posting_date <= '{budget.end_date}' "
+	"""Sum submitted, non-cancelled GL amounts for the matching budget dimensions."""
+	gle = frappe.qb.DocType("GL Entry")
+	query = (
+		frappe.qb.from_(gle)
+		.select(Coalesce(Sum(gle.debit), 0) - Coalesce(Sum(gle.credit), 0))
+		.where(gle.is_cancelled == 0)
+		.where(gle.account == args.get("account"))
+		.where(gle.posting_date >= budget.start_date)
+		.where(gle.posting_date <= budget.end_date)
+		.where(gle.fiscal_year == args.get("fiscal_year"))
+		.where(gle.company == args.get("company"))
+		.where(gle.docstatus == 1)
 	)
 
-	condition2 = ""
 	for dimension in budget.get("accounting_dimensions"):
-		dim_key = frappe.scrub(dimension.accounting_dimension)
+		dim_doctype = dimension.accounting_dimension
+		dim_key = frappe.scrub(dim_doctype)
 		dim_value = dimension.accounting_dimension_name
 		args[dim_key] = dim_value
-
-		if frappe.get_cached_value("DocType", dimension.accounting_dimension, "is_tree"):
-			lft_key = f"{dim_key}_lft"
-			rgt_key = f"{dim_key}_rgt"
-			args[lft_key], args[rgt_key] = frappe.get_cached_value(
-				dimension.accounting_dimension, dim_value, ["lft", "rgt"]
+		dim_table = frappe.qb.DocType(dim_doctype)
+		if frappe.get_cached_value("DocType", dim_doctype, "is_tree"):
+			lft, rgt = frappe.get_cached_value(dim_doctype, dim_value, ["lft", "rgt"])
+			matching_dimensions = (
+				frappe.qb.from_(dim_table)
+				.select(dim_table.name)
+				.where(dim_table.lft >= lft)
+				.where(dim_table.rgt <= rgt)
 			)
-			condition2 += f""" and exists(
-                select name from `tab{dimension.accounting_dimension}`
-                where lft >= %({lft_key})s and rgt <= %({rgt_key})s
-                and name = gle.{dim_key}) """
+			query = query.where(gle[dim_key].isin(matching_dimensions))
 		else:
-			condition2 += f""" and exists(select name from `tab{dimension.accounting_dimension}`
-            where name=gle.{dim_key} and gle.{dim_key} = '{args.get(dim_key)}')"""
+			query = query.where(gle[dim_key] == dim_value)
 
-	query = f""" select sum(gle.debit) - sum(gle.credit)
-        from `tabGL Entry` gle
-        where
-        gle.is_cancelled = 0
-        and gle.account = %(account)s
-        {condition1}
-        and gle.fiscal_year = %(fiscal_year)s
-        and gle.company = %(company)s
-        and gle.docstatus = 1
-        {condition2}
-    """
-
-	amount = flt(frappe.db.sql(query, args)[0][0])
-	return amount
+	result = query.run()
+	return flt(result[0][0]) if result else 0.0
 
 
 def get_ordered_amount(args, budget):
