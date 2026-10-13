@@ -1,0 +1,17 @@
+{
+ "doctype": "Dashboard Chart",
+ "name": "Revenue Targets by Branch",
+ "chart_name": "Revenue Targets by Branch",
+ "chart_type": "Group By",
+ "document_type": "Target Revenue",
+ "is_standard": 1,
+ "is_public": 1,
+ "module": "Flexible Budget",
+ "type": "Bar",
+ "timeseries": 0,
+ "filters_json": "[[\"Target Revenue\",\"docstatus\",\"=\",1]]",
+ "number_of_groups": 0,
+ "group_by_based_on": "branch",
+ "group_by_type": "Count",
+ "dynamic_filters_json": "[]"
+}
