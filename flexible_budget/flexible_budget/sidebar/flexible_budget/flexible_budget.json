@@ -1,0 +1,78 @@
+{
+ "doctype": "Sidebar",
+ "name": "Flexible Budget",
+ "title": "Flexible Budget",
+ "app": "flexible_budget",
+ "module": "Flexible Budget",
+ "standard": 1,
+ "header_icon": "chart-no-axes-combined",
+ "items": [
+  {
+   "type": "Link",
+   "label": "Home",
+   "link_type": "Workspace",
+   "link_to": "Flexible Budget",
+   "icon": "home",
+   "child": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Budget Planning",
+   "child": 0,
+   "indent": 1,
+   "collapsible": 1,
+   "keep_closed": 0
+  },
+  {
+   "type": "Link",
+   "label": "Multi-Dimensional Budget",
+   "link_type": "DocType",
+   "link_to": "Multi-Dimensional Budget",
+   "child": 1
+  },
+  {
+   "type": "Link",
+   "label": "Target Revenue",
+   "link_type": "DocType",
+   "link_to": "Target Revenue",
+   "child": 1
+  },
+  {
+   "type": "Section Break",
+   "label": "Analytics",
+   "child": 0,
+   "indent": 1,
+   "collapsible": 1,
+   "keep_closed": 0
+  },
+  {
+   "type": "Link",
+   "label": "Budget Control Dashboard",
+   "link_type": "Dashboard",
+   "link_to": "Flexible Budget Control",
+   "child": 1
+  },
+  {
+   "type": "Link",
+   "label": "Budget Variance",
+   "link_type": "Report",
+   "link_to": "Multi-Dimensional Budget Variance",
+   "child": 1
+  },
+  {
+   "type": "Section Break",
+   "label": "Administration",
+   "child": 0,
+   "indent": 1,
+   "collapsible": 1,
+   "keep_closed": 1
+  },
+  {
+   "type": "Link",
+   "label": "Company Budget Control",
+   "link_type": "DocType",
+   "link_to": "Company Budget Control",
+   "child": 1
+  }
+ ]
+}
