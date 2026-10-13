@@ -4,7 +4,6 @@
 import calendar
 
 import frappe
-from pypika import Order
 from dateutil.relativedelta import relativedelta
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
@@ -12,6 +11,7 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 from erpnext.accounts.utils import get_fiscal_year
 from frappe import _
 from frappe.utils import add_days, flt, getdate
+from pypika import Order
 
 from flexible_budget.flexible_budget.utils import get_actual_expense
 
@@ -281,10 +281,9 @@ def get_target_revenue_data(company, branch, start_date, end_date, frequency):
 	)
 
 	for lookup_date in (prev_date, start_date):
-		rows = (
-			base_query.where(tr.start_date <= lookup_date)
-			.where(tr.end_date >= lookup_date)
-		).run(as_dict=True)
+		rows = (base_query.where(tr.start_date <= lookup_date).where(tr.end_date >= lookup_date)).run(
+			as_dict=True
+		)
 		if rows:
 			return rows[0]
 
